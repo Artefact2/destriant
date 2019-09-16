@@ -1,0 +1,16 @@
+image: alpine:edge
+
+before_script:
+- echo 'http://dl-cdn.alpinelinux.org/alpine/edge/testing' >> /etc/apk/repositories
+- apk add --no-cache coreutils make wget sassc gzip
+
+pages:
+    stage: deploy
+    script:
+    - make
+    - find public -type f -exec gzip --best --keep '{}' ';'
+    artifacts:
+        paths:
+        - public
+    only:
+    - master

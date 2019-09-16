@@ -1,0 +1,8 @@
+body > div.p {
+	display: none;
+	margin-top: .5rem;
+}
+
+body > nav li.navbar-item > a.nav-link.active {
+	text-decoration: underline;
+}
