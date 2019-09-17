@@ -98,19 +98,28 @@
 									<select class="form-control" id="acct-editor-acct-ccy" required="required"></select>
 								</div>
 								<div class="form-row">
-										<label class="col-12">Transaction fee pricing (for est. closing costs)</label>
-										<div class="col-4">
-											<span>Flat</span>
-											<input type="number" step="any" min="0" class="form-control-sm w-100" id="acct-editor-fee-flat" placeholder="eg 2.0" />
+									<label class="col-12">Transaction fee pricing (for est. closing costs)</label>
+									<div class="form-group col-md-6">
+										<label for="acct-editor-fee-flat">Flat</label>
+										<div class="input-group">
+											<div class="input-group-prepend"><div class="input-group-text acct-editor-fee-currency"></div></div>
+											<input type="number" step="any" min="0" class="form-control" id="acct-editor-fee-flat" placeholder="eg 2.0" />
 										</div>
-										<div class="col-4">
-											<span>Percentage</span>
-											<input type="number" step="any" min="0" max="100" class="form-control-sm w-100" id="acct-editor-fee-percent" placeholder="eg 0.02" />
+									</div>
+									<div class="form-group col-md-6">
+										<label for="acct-editor-fee-percent">Percentage</label>
+										<div class="input-group">
+											<div class="input-group-prepend"><div class="input-group-text acct-editor-fee-currency"></div></div>
+											<input type="number" step="any" min="0" max="100" class="form-control" id="acct-editor-fee-percent" placeholder="eg 0.02" />
 										</div>
-										<div class="col-4">
-											<span>Per share</span>
-											<input type="number" step="any" min="0" class="form-control-sm w-100" id="acct-editor-fee-pershare" placeholder="eg 0.004" />
+									</div>
+									<div class="form-group col-md-6">
+										<label for="acct-editor-fee-pershare">Per share</label>
+										<div class="input-group">
+											<div class="input-group-prepend"><div class="input-group-text acct-editor-fee-currency"></div></div>
+											<input type="number" step="any" min="0" class="form-control" id="acct-editor-fee-pershare" placeholder="eg 0.004" />
 										</div>
+									</div>
 								</div>
 							</div>
 							<div class="modal-footer">
@@ -149,24 +158,28 @@
 							</div>
 							<div class="modal-content">
 								<div class="form-group">
-									<label for="security-editor-ticker">Ticker / Mnemonic</label>
-									<input type="text" class="form-control" id="security-editor-ticker" placeholder="eg AI" required="required"  />
-								</div>
-								<div class="form-group">
 									<label for="security-editor-name">Security name</label>
 									<input type="text" class="form-control" id="security-editor-name" placeholder="eg Air Liquide" required="required" />
 								</div>
-								<div class="form-group">
-									<label for="security-editor-isin">ISIN</label>
-									<input type="text" class="form-control" id="security-editor-isin" placeholder="eg FR0000120073" />
+								<div class="form-row">
+									<div class="form-group col-md-6">
+										<label for="security-editor-ticker">Ticker / Mnemonic</label>
+										<input type="text" class="form-control" id="security-editor-ticker" placeholder="eg AI" required="required"  />
+									</div>
+									<div class="form-group col-md-6">
+										<label for="security-editor-isin">ISIN</label>
+										<input type="text" class="form-control" id="security-editor-isin" placeholder="eg FR0000120073" />
+									</div>
 								</div>
-								<div class="form-group">
-									<label for="security-editor-ccy">Currency</label>
-									<select class="form-control" id="security-editor-ccy" required="required"></select>
-								</div>
-								<div class="form-group">
-									<label for="security-editor-exchange">Exchange</label>
-									<select class="form-control" id="security-editor-exchange" required="required"></select>
+								<div class="form-row">
+									<div class="form-group col-md-6">
+										<label for="security-editor-ccy">Currency</label>
+										<select class="form-control" id="security-editor-ccy" required="required"></select>
+									</div>
+									<div class="form-group col-md-6">
+										<label for="security-editor-exchange">Exchange</label>
+										<select class="form-control" id="security-editor-exchange" required="required"></select>
+									</div>
 								</div>
 							</div>
 							<div class="modal-footer">
@@ -178,11 +191,122 @@
 				</div>
 			</div>
 		</div>
+		<div class="p container" id="tx-editor">
+			<h1 class="d-flex justify-content-between align-items-end">
+				<span>Transactions</span>
+				<button class="btn btn-primary" id="tx-editor-new-tx">Input transaction</button>
+			</h1>
+			<table class="table table-sm table-striped">
+				<thead>
+					<tr>
+						<th scope="col">#</th>
+						<th scope="col">Date</th>
+						<th scope="col">Type</th>
+						<th scope="col">Account</th>
+						<th scope="col">Security</th>
+						<th scope="col">Quantity / Amount</th>
+						<th scope="col">Price</th>
+						<th scope="col">Fee</th>
+						<th scope="col">Total</th>
+						<th scope="col">Actions</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+			<div class="modal" tabindex="-1" role="dialog" id="tx-editor-modal">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<form>
+							<div class="modal-header">
+								<h4 class="modal-title"></h4>
+							</div>
+							<div class="modal-content">
+								<div class="form-row">
+									<div class="form-group col-md-6">
+										<label for="tx-editor-account">Account</label>
+										<select class="form-control maybe-disable enable-security enable-sdividend enable-cdividend enable-cash enable-cgain" id="tx-editor-account"></select>
+									</div>
+									<div class="form-group col-md-6">
+										<label for="tx-editor-type">Transaction type</label>
+										<select class="form-control" id="tx-editor-type" required="required">
+											<option value="security">Buy or sell security</option>
+											<option value="cdividend">Cash dividend</option>
+											<option value="sdividend">Stock dividend</option>
+											<option value="cash">Cash deposit or withdrawal</option>
+											<option value="cgain">Deposit interest or margin interest</option>
+											<option value="split">Security split or merge</option>
+										</select>
+									</div>
+								</div>
+								<div class="form-group">
+									<label for="tx-editor-date">Transaction date</label>
+									<input type="date" id="tx-editor-date" class="form-control" placeholder="YYYY-MM-DD" required="required" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}"></input>
+								</div>
+								<div class="form-group maybe-hide show-security show-cdividend show-sdividend show-split">
+									<label for="tx-editor-security">Security</label>
+									<select class="form-control" id="tx-editor-security"></select>
+								</div>
+								<div class="form-row maybe-hide show-security show-sdividend">
+									<div class="form-group col-md-6">
+										<label for="tx-editor-quantity">Quantity</label>
+										<input type="number" id="tx-editor-quantity" step="any" class="form-control" placeholder="eg 12.3 or blank" />
+									</div>
+									<div class="form-group col-md-6 maybe-hide show-security show-sdividend">
+										<label for="tx-editor-price">Price</label>
+										<div class="input-group">
+											<div class="input-group-prepend"><div class="input-group-text" id="tx-editor-price-currency"></div></div>
+											<input type="number" id="tx-editor-price" step="any" class="form-control maybe-disable enable-security" placeholder="eg 45.67 or blank" />
+										</div>
+									</div>
+								</div>
+								<div class="form-group maybe-hide show-cdividend show-cash show-cgain">
+									<label for="tx-editor-amount">Amount</label>
+									<div class="input-group">
+										<div class="input-group-prepend"><div class="input-group-text" id="tx-editor-amount-currency"></div></div>
+										<input type="number" id="tx-editor-amount" step="any" class="form-control" placeholder="eg 23.45 or blank" />
+									</div>
+								</div>
+								<div class="form-row maybe-hide show-cdividend show-sdividend show-cash show-cgain show-security">
+									<div class="form-group col-md-6">
+										<label for="tx-editor-fee">Fee</label>
+										<div class="input-group">
+											<div class="input-group-prepend"><div class="input-group-text" id="tx-editor-fee-currency"></div></div>
+											<input type="number" id="tx-editor-fee" step="any" class="form-control" placeholder="eg 1.23 or blank" />
+										</div>
+									</div>
+									<div class="form-group col-md-6">
+										<label for="tx-editor-total">Total (incl. fee)</label>
+										<div class="input-group">
+											<div class="input-group-prepend"><div class="input-group-text" id="tx-editor-total-currency"></div></div>
+											<input type="number" id="tx-editor-total" step="any" class="form-control" placeholder="eg 123.45 or blank" />
+										</div>
+									</div>
+								</div>
+								<div class="form-row maybe-hide show-split">
+									<div class="form-group col-md-6">
+										<label for="tx-editor-split-before">Quantity before</label>
+										<input type="number" id="tx-editor-split-before" step="any" class="form-control" placeholder="eg 1" />
+									</div>
+									<div class="form-group col-md-6">
+										<label for="tx-editor-split-after">Quantity after</label>
+										<input type="number" id="tx-editor-split-after" step="any" class="form-control" placeholder="eg 5" />
+									</div>
+								</div>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary" id="tx-editor-modal-cancel">Cancel</button>
+								<button type="submit" class="btn btn-primary" id="tx-editor-modal-save">Save</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
 		<div class="modal" tabindex="-1" role="dialog" id="export-pf-modal">
 			<div class="modal-dialog" role="document">
 				<div class="modal-content">
 					<div class="modal-header">
-						<h4>Export portfolio</h4>
+						<h4 class="modal-title">Export portfolio</h4>
 					</div>
 					<div class="modal-content">
 						<p class="lead text-center"></p>
@@ -198,7 +322,7 @@
 				<div class="modal-content">
 					<form>
 						<div class="modal-header">
-							<h4>Import portfolio</h4>
+							<h4 class="modal-title">Import portfolio</h4>
 						</div>
 						<div class="modal-content">
 							<p class="alert alert-warning"><strong>Importing a portfolio will erase all your current data. Be careful!</strong></p>

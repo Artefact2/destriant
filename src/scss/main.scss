@@ -10,3 +10,8 @@ body > div.p#welcome {
 body > nav li.navbar-item > a.nav-link.active {
 	text-decoration: underline;
 }
+
+span.currency-amount.currency-amount-negative {
+	&:before { content: '('; }
+	&:after { content: ')'; }
+}

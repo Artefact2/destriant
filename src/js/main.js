@@ -15,6 +15,19 @@
 
 "use strict";
 
+const dst_format_currency_amount = function(ccy, amount) {
+	let ret = $(document.createElement('span')).addClass('currency-amount');
+	if(amount > 0) ret.addClass('currency-amount-positive');
+	else if(amount < 0) {
+		ret.addClass('currency-amount-negative');
+		amount = -amount;
+	}
+	/* https://stackoverflow.com/questions/149055/how-can-i-format-numbers-as-currency-string-in-javascript */
+	/* XXX */
+	ret.text(amount.toLocaleString('en-GB', { style: 'currency', currency: ccy }));
+	return ret;
+};
+
 $(function() {
 	$("p#js-warning").remove();
 });

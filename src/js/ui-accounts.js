@@ -73,6 +73,7 @@ const dst_reset_acct_modal = function(modal) {
 	modal.find(".modal-title").text('Create account');
 	modal.find("button#acct-editor-modal-save").prop('disabled', false);
 	modal.find("form")[0].reset();
+	modal.find("select#acct-editor-acct-ccy").change();
 	modal.data('idx', -1);
 };
 
@@ -162,6 +163,9 @@ $(function() {
 				modal.modal('hide');
 			});
 		});
+	});
+	$("select#acct-editor-acct-ccy").change(function() {
+		$(this).closest('form').find('.acct-editor-fee-currency').text($(this).val());
 	});
 
 	dst_fetch_and_reload_account_list();
