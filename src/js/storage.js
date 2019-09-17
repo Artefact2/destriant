@@ -15,14 +15,14 @@
 
 "use strict";
 
-let dst_get_state = function(key) {
+const dst_get_state = function(key) {
 	return localforage.getItem(key).catch(function(err) {
 		/* XXX */
 		console.log(key, err);
 	});
 };
 
-let dst_set_state = function(key, val) {
+const dst_set_state = function(key, val) {
 	return localforage.setItem(key, val).catch(function(err) {
 		/* XXX */
 		console.log(key, val, err);

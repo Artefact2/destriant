@@ -3,6 +3,10 @@ body > div.p {
 	margin-top: .5rem;
 }
 
+body > div.p#welcome {
+	display: block;
+}
+
 body > nav li.navbar-item > a.nav-link.active {
 	text-decoration: underline;
 }

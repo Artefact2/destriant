@@ -15,7 +15,7 @@
 
 "use strict";
 
-let dst_fetch_and_reload_account_list = function() {
+const dst_fetch_and_reload_account_list = function() {
 	let tbody = $("div#acct-editor tbody");
 	tbody.empty();
 	tbody.append($(document.createElement('tr')).append(
@@ -25,7 +25,7 @@ let dst_fetch_and_reload_account_list = function() {
 	dst_get_state('accounts').then(dst_reload_account_list);
 };
 
-let dst_reload_account_list = function(accounts) {
+const dst_reload_account_list = function(accounts) {
 	let tbody = $("div#acct-editor tbody");
 	let select = $("select#main-account-selector");
 	let sid = select.val();
@@ -69,11 +69,18 @@ let dst_reload_account_list = function(accounts) {
 	));
 };
 
+const dst_reset_acct_modal = function(modal) {
+	modal.find(".modal-title").text('Create account');
+	modal.find("button#acct-editor-modal-save").prop('disabled', false);
+	modal.find("form")[0].reset();
+	modal.data('idx', -1);
+};
+
 $(function() {
 	$("button#acct-editor-new-acct").click(function() {
-		$("span#acct-editor-modal-title").text('Create account');
-		$("div#acct-editor-modal form")[0].reset();
-		$("div#acct-editor-modal").data('idx', -1).modal('show');
+		let modal = $("div#acct-editor-modal");
+		dst_reset_acct_modal(modal);
+		modal.modal('show');
 	});
 
 	$("div#acct-editor").on('click', 'button.edit-account', function() {
@@ -83,8 +90,8 @@ $(function() {
 		dst_get_state('accounts').then(function(accounts) {
 			let a = accounts[tr.data('idx')];
 
-			modal.find("span#acct-editor-modal-title").text('Edit account #' + tr.data('idx'));
-			modal.find("form")[0].reset();
+			dst_reset_acct_modal(modal);
+			modal.find(".modal-title").text('Edit account #' + tr.data('idx'));
 			modal.find('input#acct-editor-acct-name').val(a.name);
 			modal.find('select#acct-editor-acct-ccy').val(a.currency);
 			modal.find('input#acct-editor-fee-flat').val(a.fees[0]);
@@ -113,9 +120,10 @@ $(function() {
 	$("div#acct-editor-modal button#acct-editor-modal-cancel").click(function() {
 		$("div#acct-editor-modal").modal('hide');
 	});
-	$("div#acct-editor-modal button#acct-editor-modal-save").click(function() {
-		let btn = $(this);
+	$("div#acct-editor-modal form").submit(function() {
 		let modal = $("div#acct-editor-modal");
+		let btn = modal.find("button#acct-editor-modal-save");
+
 		let account = {
 			id: null,
 			name: modal.find('input#acct-editor-acct-name').val(),
@@ -152,10 +160,10 @@ $(function() {
 			dst_set_state('accounts', accounts).then(function() {
 				dst_reload_account_list(accounts);
 				modal.modal('hide');
-				btn.prop('disabled', false);
 			});
 		});
 	});
 
 	dst_fetch_and_reload_account_list();
+	dst_fill_currency_select($("select#acct-editor-acct-ccy"));
 });

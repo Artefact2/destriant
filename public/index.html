@@ -27,8 +27,8 @@
 						<a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">Tools</a>
 						<div class="dropdown-menu dropdown-menu-right">
 							<a data-target="acct-editor" class="p-link dropdown-item" href="#">Accounts…</a>
+							<a data-target="security-editor" class="p-link dropdown-item" href="#">Securities…</a>
 							<a data-target="tx-editor" class="p-link dropdown-item" href="#">Transactions…</a>
-							<a data-target="security-editor" class="p-link dropdown-item" href="#">Securites…</a>
 							<a data-target="price-editor" class="p-link dropdown-item" href="#">Prices…</a>
 							<div class="dropdown-divider"></div>
 							<a id="nav-save-pf" class="dropdown-item" href="#">Export portfolio…</a>
@@ -50,7 +50,7 @@
 		<div id="welcome" class="p container">
 			<div class="jumbotron" class="mt-4">
 				<h1>Track your stock portfolio with style!</h1>
-				<p class="lead"><strong>Destriant</strong> is a stock portfolio overview tool that runs entirely in the browser.</p>
+				<p class="lead"><strong>Destriant</strong> <small>\'dɛs.tɹɪ.ənt\</small> is a stock portfolio overview tool that runs entirely in the browser.</p>
 				<p>Destriant is the spiritual successor of <a href="https://github.com/Artefact2/pfm">pfm</a>. It is libre, serverless and respects your personal data and privacy. Check out the <a href="https://gitlab.com/artefact2/destriant">source code</a>.
 				<p>
 					<button class="btn btn-primary btn-lg" disabled="disabled">Load a demo portfolio</button>
@@ -66,7 +66,7 @@
 		<div id="acct-editor" class="p container">
 			<h1 class="d-flex justify-content-between align-items-end">
 				<span>Accounts</span>
-				<button class="btn btn-primary ml-auto" id="acct-editor-new-acct">New account</button>
+				<button class="btn btn-primary" id="acct-editor-new-acct">New account</button>
 			</h1>
 			<p>Accounts allow you to separate transactions into different “containers” for more fine-grained tracking. You must have at least one account to input transactions. You can create as many accounts as you want.</p>
 			<table class="table table-sm table-striped">
@@ -86,35 +86,92 @@
 					<div class="modal-content">
 						<form>
 							<div class="modal-header">
-								<h4 class="modal-title"><span id="acct-editor-modal-title"></span></h3>
+								<h4 class="modal-title"></h4>
 							</div>
 							<div class="modal-content">
 								<div class="form-group">
 									<label for="acct-editor-acct-name">Account name</label>
-									<input type="text" class="form-control" id="acct-editor-acct-name" />
+									<input type="text" class="form-control" id="acct-editor-acct-name" placeholder="eg Foo Bank #1234" required="required" />
 								</div>
 								<div class="form-group">
 									<label for="acct-editor-acct-ccy">Base currency</label>
-									<select class="form-control" id="acct-editor-acct-ccy">
-										<option value="EUR">EUR</option>
-									</select>
+									<select class="form-control" id="acct-editor-acct-ccy" required="required"></select>
 								</div>
 								<div class="form-row">
 										<label class="col-12">Transaction fee pricing (for est. closing costs)</label>
 										<div class="col-4">
-											<input type="number" step="any" min="0" class="form-control-sm w-100" id="acct-editor-fee-flat" placeholder="Flat fee…" title="Flat fee" />
+											<span>Flat</span>
+											<input type="number" step="any" min="0" class="form-control-sm w-100" id="acct-editor-fee-flat" placeholder="eg 2.0" />
 										</div>
 										<div class="col-4">
-											<input type="number" step="any" min="0" max="100" class="form-control-sm w-100" id="acct-editor-fee-percent" placeholder="Percentage fee…" title="Percentage fee (0-100)" />
+											<span>Percentage</span>
+											<input type="number" step="any" min="0" max="100" class="form-control-sm w-100" id="acct-editor-fee-percent" placeholder="eg 0.02" />
 										</div>
 										<div class="col-4">
-											<input type="number" step="any" min="0" class="form-control-sm w-100" id="acct-editor-fee-pershare" placeholder="Per share fee…" title="Per share fee" />
+											<span>Per share</span>
+											<input type="number" step="any" min="0" class="form-control-sm w-100" id="acct-editor-fee-pershare" placeholder="eg 0.004" />
 										</div>
 								</div>
 							</div>
 							<div class="modal-footer">
 								<button type="button" class="btn btn-secondary" id="acct-editor-modal-cancel">Cancel</button>
 								<button type="submit" class="btn btn-primary" id="acct-editor-modal-save">Save</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div id="security-editor" class="p container">
+			<h1 class="d-flex justify-content-between align-items-end">
+				<span>Securities</span>
+				<button class="btn btn-primary" id="security-editor-new-security">New security</button>
+			</h1>
+			<table class="table table-sm table-striped">
+				<thead>
+					<tr>
+						<th scope="col">Ticker</th>
+						<th scope="col">Name</th>
+						<th scope="col">ISIN</th>
+						<th scope="col">Exchange</th>
+						<th scope="col">Currency</th>
+						<th scope="col">Actions</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+			<div class="modal" tabindex="-1" role="dialog" id="security-editor-modal">
+				<div class="modal-dialog" role="document">
+					<div class="modal-content">
+						<form>
+							<div class="modal-header">
+								<h4 class="modal-title"></h4>
+							</div>
+							<div class="modal-content">
+								<div class="form-group">
+									<label for="security-editor-ticker">Ticker / Mnemonic</label>
+									<input type="text" class="form-control" id="security-editor-ticker" placeholder="eg AI" required="required"  />
+								</div>
+								<div class="form-group">
+									<label for="security-editor-name">Security name</label>
+									<input type="text" class="form-control" id="security-editor-name" placeholder="eg Air Liquide" required="required" />
+								</div>
+								<div class="form-group">
+									<label for="security-editor-isin">ISIN</label>
+									<input type="text" class="form-control" id="security-editor-isin" placeholder="eg FR0000120073" />
+								</div>
+								<div class="form-group">
+									<label for="security-editor-ccy">Currency</label>
+									<select class="form-control" id="security-editor-ccy" required="required"></select>
+								</div>
+								<div class="form-group">
+									<label for="security-editor-exchange">Exchange</label>
+									<select class="form-control" id="security-editor-exchange" required="required"></select>
+								</div>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary" id="security-editor-modal-cancel">Cancel</button>
+								<button type="submit" class="btn btn-primary" id="security-editor-modal-save">Save</button>
 							</div>
 						</form>
 					</div>
