@@ -40,14 +40,17 @@ const dst_reload_account_list = function(accounts) {
 		tr.append($(document.createElement('td')).text(a.id));
 		tr.append($(document.createElement('td')).append($(document.createElement('strong')).text(a.name)));
 		tr.append($(document.createElement('td')).text(a.currency));
-		tr.append($(document.createElement('td')).text(
-			a.currency + ' ' + a.fees[0].toFixed(2) + ' + ' + a.fees[1].toFixed(2) + '% + ' + a.fees[2].toFixed(2) + '/share'
+		tr.append($(document.createElement('td')).append(
+			dst_format_currency_amount(a.currency, a.fees[0]),
+			' + ' + a.fees[1].toFixed(2) + '% + ',
+			dst_format_currency_amount(a.currency, a.fees[2]),
+			'/share'
 		));
 		tr.append($(document.createElement('td')).append(
 			$(document.createElement('button')).addClass('btn btn-sm btn-secondary edit-account').text('Edit'),
 			' ',
 			$(document.createElement('button')).addClass('btn btn-sm btn-secondary delete-account').text('Delete')
-		));
+		).addClass('text-right'));
 		tbody.append(tr);
 
 		let option = $(document.createElement('option'));

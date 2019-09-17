@@ -62,7 +62,7 @@ const dst_reload_securities_list = function(securities) {
 			$(document.createElement('button')).addClass('btn btn-sm btn-secondary edit-security').text('Edit'),
 			' ',
 			$(document.createElement('button')).addClass('btn btn-sm btn-secondary delete-security').text('Delete')
-		));
+		).addClass('text-right'));
 
 		tr.data('ticker', s.ticker);
 		tbody.append(tr);
