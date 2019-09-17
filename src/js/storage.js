@@ -16,21 +16,75 @@
 "use strict";
 
 const dst_get_state = function(key) {
-	return localforage.getItem(key).catch(function(err) {
-		/* XXX */
-		console.log(key, err);
-	});
+	/* XXX: better error handling */
+	return localforage.getItem(key).catch(err => console.log(key, err));
 };
 
 const dst_set_state = function(key, val) {
-	return localforage.setItem(key, val).catch(function(err) {
-		/* XXX */
-		console.log(key, val, err);
+	return localforage.setItem(key, val).catch(err => console.log(key, err));
+};
+
+const dst_get_states = function(keys) {
+	return Promise.all(keys.map(k => dst_get_state(k).then(v => [ k, v ]))).then(values => {
+		let s = {};
+		values.forEach(v => s[v[0]] = v[1]);
+		return s;
 	});
+};
+
+const dst_set_states = function(obj) {
+	return Promise.all(Object.keys(obj).map(k => dst_set_state(k, obj[k])));
 };
 
 $(function() {
 	if(!localforage.supports(localforage.INDEXEDDB)) {
 		console.log('Indexed DB not supported, maximum portfolio size will be impacted');
 	}
+
+	$("a#nav-save-pf").click(function() {
+		let modal = $("div#export-pf-modal");
+		let a = modal.find('a');
+		if(a.length === 1) {
+			URL.revokeObjectURL(a.prop('href'));
+		}
+		modal.find('p').empty().text('Exporting portfolio…');
+		modal.modal('show');
+
+		dst_get_states([
+			'accounts',
+			'securities',
+		]).then(pf => {
+			let b = new Blob([ JSON.stringify(pf) ], { type: 'application/json' });
+			let uri = URL.createObjectURL(b);
+			let fn = 'destriant_' + Date.now().toString() + '.json';
+
+			modal.find('p').empty().append($(document.createElement('a')).append(
+				'Download portfolio: ' + fn
+			).prop('href', uri).prop('download', fn));
+		});
+	});
+	$("button#export-pf-modal-close").click(function() {
+		$("div#export-pf-modal").modal('hide');
+	});
+
+	$("a#nav-load-pf, button#welcome-import-pf").click(function() {
+		$("div#import-pf-modal form")[0].reset();
+		$("div#import-pf-modal").modal('show');
+	});
+	$("button#import-pf-modal-close").click(function() {
+		$("div#import-pf-modal").modal('hide');
+	});
+	$("div#import-pf-modal form").submit(function() {
+		let input = $("div#import-pf-modal input#import-pf-file")[0];
+		if(input.files.length !== 1) return;
+
+		$("div#import-pf-modal button#import-pf-modal-import").prop('disabled', true);
+		let r = new FileReader();
+		r.onload = function() {
+			dst_set_states(JSON.parse(r.result)).then(function() {
+				location.reload();
+			});
+		};
+		r.readAsText(input.files[0]);
+	});
 });

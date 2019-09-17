@@ -54,7 +54,7 @@
 				<p>Destriant is the spiritual successor of <a href="https://github.com/Artefact2/pfm">pfm</a>. It is libre, serverless and respects your personal data and privacy. Check out the <a href="https://gitlab.com/artefact2/destriant">source code</a>.
 				<p>
 					<button class="btn btn-primary btn-lg" disabled="disabled">Load a demo portfolio</button>
-					<button class="btn btn-secondary btn-lg" disabled="disabled">Import a portfolio</button>
+					<button class="btn btn-secondary btn-lg" id="welcome-import-pf">Import a portfolio</button>
 					or start inputting your accounts, securities and transactions in the “Tools” menu.
 				</p>
 				<hr />
@@ -175,6 +175,43 @@
 							</div>
 						</form>
 					</div>
+				</div>
+			</div>
+		</div>
+		<div class="modal" tabindex="-1" role="dialog" id="export-pf-modal">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h4>Export portfolio</h4>
+					</div>
+					<div class="modal-content">
+						<p class="lead text-center"></p>
+					</div>
+					<div class="modal-footer">
+						<button class="btn btn-secondary" id="export-pf-modal-close">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="modal" tabindex="-1" role="dialog" id="import-pf-modal">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<form>
+						<div class="modal-header">
+							<h4>Import portfolio</h4>
+						</div>
+						<div class="modal-content">
+							<p class="alert alert-warning"><strong>Importing a portfolio will erase all your current data. Be careful!</strong></p>
+							<div class="form-group">
+								<label for="import-pf-file">Pick a file…</label>
+								<input type="file" id="import-pf-file" class="form-control-file" />
+							</div>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-secondary" id="import-pf-modal-close">Cancel</button>
+							<button type="submit" class="btn btn-primary" id="import-pf-modal-import">Import</button>
+						</div>
+					</form>
 				</div>
 			</div>
 		</div>
