@@ -138,17 +138,30 @@ $(function() {
 			modal.data('ticker', s.ticker).modal('show');
 		});
 	}).on('click', 'button.delete-security', function() {
-		/* XXX: confirm */
-		/* XXX: make sure no transactions/prices are using this security */
 		let btn = $(this).prop('disabled', true);
 		let tr = btn.closest('tr');
 
-		dst_get_state('securities').then(function(secs) {
-			delete secs[tr.data('ticker')];
-			dst_set_state('securities', secs).then(function() {
+		dst_get_states([ 'securities', 'transactions' ]).then(state => {
+			if(state.transactions === null) state.transactions = [];
+
+			/* XXX */
+			if(state.transactions.some(tx => tx.ticker === tr.data('ticker'))) {
+				alert('Some transactions are still tied to this security; cannot continue.');
+				btn.prop('disabled', false);
+				return;
+			}
+
+			/* XXX */
+			if(!confirm('Really delete security: ' + tr.data('ticker') + '?')) {
+				btn.prop('disabled', false);
+				return;
+			}
+
+			delete state.securities[tr.data('ticker')];
+			dst_set_state('securities', state.securities).then(function() {
 				tr.fadeOut(200, function() {
-					if($.isEmptyObject(secs)) {
-						dst_reload_securities_list(secs);
+					if($.isEmptyObject(state.securities)) {
+						dst_reload_securities_list(state.securities);
 					}
 				});
 			});

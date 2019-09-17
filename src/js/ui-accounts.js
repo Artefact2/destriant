@@ -102,17 +102,31 @@ $(function() {
 		});
 
 	}).on('click', 'button.delete-account', function() {
-		/* XXX: check for existing transactions attached to this account */
-		/* XXX: ask for confirmation */
-
-		$(this).prop('disabled', true);
+		let btn = $(this).prop('disabled', true);
 		let tr = $(this).closest('tr');
 
-		dst_get_state('accounts').then(function(accounts) {
-			accounts.splice(tr.data('idx'), 1);
-			dst_set_state('accounts', accounts).then(function() {
+		dst_get_states([ 'accounts', 'transactions' ]).then(state => {
+			if(state.transactions === null) state.transactions = [];
+			let accountid = state.accounts[tr.data('idx')].id;
+
+			if(state.transactions.some(tx => tx.account === accountid)) {
+				/* XXX */
+				alert('Some transactions are still tied to this account; cannot continue.');
+				btn.prop('disabled', false);
+				return;
+			}
+
+			if(!confirm('Really delete account: ' + state.accounts[tr.data('idx')].name + '?')) {
+				/* XXX */
+				btn.prop('disabled', false);
+				return;
+
+			}
+
+			state.accounts.splice(tr.data('idx'), 1);
+			dst_set_state('accounts', state.accounts).then(function() {
 				tr.fadeOut(200, function() {
-					dst_reload_account_list(accounts);
+					dst_reload_account_list(state.accounts);
 				});
 			});
 		});

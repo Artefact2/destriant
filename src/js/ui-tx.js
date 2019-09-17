@@ -268,8 +268,11 @@ $(function() {
 	});
 
 	$("div#tx-editor").on('click', 'button.delete-tx', function() {
-		$(this).prop('disabled', true);
 		let tr = $(this).closest('tr');
+		if(!confirm('Really delete transaction #' + tr.data('idx') + '?')) {
+			return;
+		}
+		$(this).prop('disabled', true);
 
 		dst_get_state('transactions').then(txs => {
 			txs.splice(tr.data('idx'), 1);
