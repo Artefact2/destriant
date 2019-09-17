@@ -19,14 +19,24 @@ $(function() {
 	$("nav a.p-link").click(function(e) {
 		e.preventDefault();
 		let anchor = $(this);
-		$("body > div.p").fadeOut(200, function() {
+		let cur = $("body > div.p:visible");
+
+		let load = function() {
 			let target = anchor.data('target');
 			anchor.blur();
 			$("body > nav a.active").removeClass('active');
 			anchor.addClass('active');
-			$("body > div.p#" + target).trigger('dst-load').fadeIn(200);
-			history.replaceState(null, "", "#" + target);
-		});
+			$("body > div.p#" + target).trigger('dst-load').fadeIn(200, function() {
+				history.replaceState(null, "", "#" + target);
+			});
+		};
+
+		if(cur.length === 1) {
+			cur.fadeOut(200, load);
+		} else {
+			cur.hide();
+			load();
+		}
 	});
 
 	dst_get_state('accounts').then(function(accounts) {
@@ -37,6 +47,7 @@ $(function() {
 		} else {
 			location.hash = "#welcome";
 		}
+		$("body > div.p").hide();
 		$("body > div.p" + location.hash).trigger('dst-load').show();
 		$("body > nav a[data-target='" + location.hash.substring(1) + "']").addClass('active');
 	});
