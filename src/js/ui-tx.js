@@ -147,7 +147,7 @@ $(function() {
 		};
 
 		if(type !== 'split') {
-			tx.account = modal.find('select#tx-editor-account').val();
+			tx.account = parseInt(modal.find('select#tx-editor-account').val(), 10);
 			tx.fee = parseFloat(modal.find('input#tx-editor-fee').val());
 			tx.total = parseFloat(modal.find('input#tx-editor-total').val());
 		}
