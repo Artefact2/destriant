@@ -53,6 +53,7 @@ $(function() {
 		dst_get_states([
 			'accounts',
 			'securities',
+			'transactions',
 		]).then(pf => {
 			let b = new Blob([ JSON.stringify(pf) ], { type: 'application/json' });
 			let uri = URL.createObjectURL(b);
