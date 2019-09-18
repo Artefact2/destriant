@@ -170,6 +170,7 @@ $(function() {
 			}
 
 			if(modal.data('idx') >= 0) {
+				account.id = accounts[modal.data('idx')].id;
 				accounts[modal.data('idx')] = account;
 			} else {
 				accounts.push(account);
