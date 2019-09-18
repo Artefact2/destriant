@@ -69,6 +69,17 @@ const dst_reload_securities_list = function(securities) {
 	}
 };
 
+/* XXX */
+const dst_fill_security_select = function(select) {
+	dst_get_state('securities').then(securities => {
+		if(securities === null) securities = {};
+		select.empty();
+		Object.values(securities).forEach(s => select.append($(document.createElement('option')).prop('value', s.ticker).text(
+			s.ticker + ', ' + s.name
+		).data('currency', s.currency)));
+	});
+};
+
 $(function() {
 	$("button#security-editor-new-security").click(function() {
 		let modal = $("div#security-editor-modal");
@@ -116,6 +127,7 @@ $(function() {
 
 			dst_set_state('securities', secs).then(function() {
 				dst_reload_securities_list(secs);
+				dst_fill_security_select($("select#tx-editor-security"));
 				modal.modal('hide');
 			});
 		});
@@ -163,6 +175,7 @@ $(function() {
 					if($.isEmptyObject(state.securities)) {
 						dst_reload_securities_list(state.securities);
 					}
+					dst_fill_security_select($("select#tx-editor-security"));
 				});
 			});
 		});

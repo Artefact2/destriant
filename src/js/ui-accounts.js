@@ -80,6 +80,15 @@ const dst_reset_acct_modal = function(modal) {
 	modal.data('idx', -1);
 };
 
+/* XXX: refactor in a “on account list change” event-based system */
+const dst_fill_account_select = function(select) {
+	dst_get_state('accounts').then(accounts => {
+		if(accounts === null) accounts = [];
+		select.empty();
+		accounts.forEach(a => select.append($(document.createElement('option')).prop('value', a.id).text(a.name).data('currency', a.currency)));
+	});
+};
+
 $(function() {
 	$("button#acct-editor-new-acct").click(function() {
 		let modal = $("div#acct-editor-modal");
@@ -129,6 +138,7 @@ $(function() {
 			state.accounts.splice(tr.data('idx'), 1);
 			dst_set_state('accounts', state.accounts).then(function() {
 				tr.fadeOut(200, function() {
+					dst_fill_account_select($("select#tx-editor-account"));
 					dst_reload_account_list(state.accounts);
 				});
 			});
@@ -178,6 +188,7 @@ $(function() {
 
 			dst_set_state('accounts', accounts).then(function() {
 				dst_reload_account_list(accounts);
+				dst_fill_account_select($("select#tx-editor-account"));
 				modal.modal('hide');
 			});
 		});

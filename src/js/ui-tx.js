@@ -22,26 +22,7 @@ const dst_reset_tx_modal = function(modal) {
 	modal.find('select#tx-editor-type').change();
 	modal.find('input#tx-editor-date').val(new Date().toISOString().split('T')[0]);
 	modal.find('.is-invalid').removeClass('is-invalid');
-	modal.data('idx', -1);
-
-	let sa = modal.find('select#tx-editor-account').prop('disabled', true).empty();
-	let ss = modal.find('select#tx-editor-security').prop('disabled', true).empty();
-
-	dst_get_state('accounts').then(accounts => {
-		if(accounts === null) accounts = [];
-		accounts.forEach(a => sa.append($(document.createElement('option')).prop('value', a.id).text(a.name).data('currency', a.currency)));
-		sa.prop('disabled', false);
-		sa.change();
-	});
-
-	dst_get_state('securities').then(securities => {
-		if(securities === null) securities = {};
-		Object.values(securities).forEach(s => ss.append($(document.createElement('option')).prop('value', s.ticker).text(
-			s.ticker + ', ' + s.name
-		).data('currency', s.currency)));
-		ss.prop('disabled', false);
-		ss.change();
-	});
+	modal.data('id', -1);
 };
 
 const dst_fetch_and_reload_tx_list = function() {
@@ -69,50 +50,51 @@ const dst_reload_tx_list = function(txs) {
 	dst_get_states([ 'securities', 'accounts' ]).then(state => {
 		let accountmap = {};
 		state.accounts.forEach(a => accountmap[a.id] = a);
-
-		txs.forEach((tx, idx) => {
-			let tr = $(document.createElement('tr'));
-			tr.data('idx', idx);
-			tr.append($(document.createElement('td')).text(idx));
-			tr.append($(document.createElement('td')).text(tx.date));
-			tr.append($(document.createElement('td')).text(tx.type));
-
-			switch(tx.type) {
-			case 'split':
-				tr.append($(document.createElement('td')));
-				tr.append($(document.createElement('td')).text(tx.ticker));
-				tr.append($(document.createElement('td')).text(
-					tx.before.toString() + ':' + tx.after.toString()
-				).addClass('text-right'));
-				tr.append($(document.createElement('td')).prop('colspan', 3));
-				break;
-
-			case 'cash':
-				tr.append($(document.createElement('td')).text(accountmap[tx.account].name));
-				tr.append($(document.createElement('td')).append(dst_format_fixed_amount(tx.quantity, 4)).addClass('text-right').prop('colspan', 2));
-				tr.append($(document.createElement('td')));
-				tr.append($(document.createElement('td')).append(dst_format_currency_amount(accountmap[tx.account].currency, tx.fee)).addClass('text-right'));
-				tr.append($(document.createElement('td')).append(dst_format_currency_amount(accountmap[tx.account].currency, tx.quantity - tx.fee)).addClass('text-right'));
-				break;
-
-			case 'security':
-				tr.append($(document.createElement('td')).text(accountmap[tx.account].name));
-				tr.append($(document.createElement('td')).text(tx.ticker));
-				tr.append($(document.createElement('td')).append(dst_format_fixed_amount(tx.quantity, 4)).addClass('text-right'));
-				tr.append($(document.createElement('td')).append(dst_format_currency_amount(state.securities[tx.ticker].currency, tx.price)).addClass('text-right'));
-				tr.append($(document.createElement('td')).append(dst_format_currency_amount(accountmap[tx.account].currency, tx.fee)).addClass('text-right'));
-				tr.append($(document.createElement('td')).append(dst_format_currency_amount(accountmap[tx.account].currency, -tx.quantity * tx.price - tx.fee)).addClass('text-right'));
-				break;
-			}
-
-			tr.append($(document.createElement('td')).append(
-				$(document.createElement('button')).addClass('btn btn-sm btn-secondary edit-tx').text('Edit'),
-				' ',
-				$(document.createElement('button')).addClass('btn btn-sm btn-secondary delete-tx').text('Delete')
-			).addClass('text-right'));
-			tbody.prepend(tr);
-		});
+		txs.forEach(tx => tbody.prepend(dst_make_tx_tr(tx, accountmap[tx.account], state.securities[tx.ticker])));
 	});
+};
+
+const dst_make_tx_tr = function(tx, account, security) {
+	let tr = $(document.createElement('tr'));
+	tr.data('id', tx.id);
+	tr.append($(document.createElement('td')).text(tx.id));
+	tr.append($(document.createElement('td')).text(tx.date));
+	tr.append($(document.createElement('td')).text(tx.type));
+
+	switch(tx.type) {
+	case 'split':
+		tr.append($(document.createElement('td')));
+		tr.append($(document.createElement('td')).text(tx.ticker));
+		tr.append($(document.createElement('td')).text(
+			tx.before.toString() + ':' + tx.after.toString()
+		).addClass('text-right'));
+		tr.append($(document.createElement('td')).prop('colspan', 3));
+		break;
+
+	case 'cash':
+		tr.append($(document.createElement('td')).text(account.name));
+		tr.append($(document.createElement('td')).append(dst_format_fixed_amount(tx.quantity, 4)).addClass('text-right').prop('colspan', 2));
+		tr.append($(document.createElement('td')));
+		tr.append($(document.createElement('td')).append(dst_format_currency_amount(account.currency, tx.fee)).addClass('text-right'));
+		tr.append($(document.createElement('td')).append(dst_format_currency_amount(account.currency, tx.quantity - tx.fee)).addClass('text-right'));
+		break;
+
+	case 'security':
+		tr.append($(document.createElement('td')).text(account.name));
+		tr.append($(document.createElement('td')).text(tx.ticker));
+		tr.append($(document.createElement('td')).append(dst_format_fixed_amount(tx.quantity, 4)).addClass('text-right'));
+		tr.append($(document.createElement('td')).append(dst_format_currency_amount(security.currency, tx.price)).addClass('text-right'));
+		tr.append($(document.createElement('td')).append(dst_format_currency_amount(account.currency, tx.fee)).addClass('text-right'));
+		tr.append($(document.createElement('td')).append(dst_format_currency_amount(account.currency, -tx.quantity * tx.price - tx.fee)).addClass('text-right'));
+		break;
+	}
+
+	tr.append($(document.createElement('td')).append(
+		$(document.createElement('button')).addClass('btn btn-sm btn-secondary edit-tx').text('Edit'),
+		' ',
+		$(document.createElement('button')).addClass('btn btn-sm btn-secondary delete-tx').text('Delete')
+	).addClass('text-right'));
+	return tr;
 };
 
 $(function() {
@@ -255,21 +237,32 @@ $(function() {
 		}
 
 		modal.find('button#tx-editor-modal-save').prop('disabled', true);
-		dst_get_state('transactions').then(txs => {
-			if(txs === null) txs = [];
+		dst_get_states([ 'transactions', 'accounts', 'securities' ]).then(state => {
+			if(state.transactions === null) state.transactions = [];
+			let tbody = $("div#tx-editor tbody");
 
-			if(modal.data('idx') > -1) {
+			if(modal.data('id') > -1) {
 				/* Don't update in place, tx date may have changed, delete and reinsert to keep the tx list sorted */
-				txs.splice(modal.data('idx'), 1);
+				let idx = state.transactions.findIndex(t => t.id === modal.data('id'));
+				state.transactions.splice(idx, 1);
+				tbody.children().filter((_, tr) => $(tr).data('id') === modal.data('id')).remove();
+				tx.id = modal.data('id');
+			} else {
+				tx.id = state.transactions.reduce((m, tx) => Math.max(m, tx.id), 0) + 1;
 			}
 
 			/* XXX: inefficient, use a binary search */
-			let i, imax = txs.length;
-			for(i = 0; i < imax && txs[i].date <= tx.date; ++i) { }
-			txs.splice(i, 0, tx);
+			let i, imax = state.transactions.length;
+			for(i = 0; i < imax && state.transactions[i].date <= tx.date; ++i) { }
+			state.transactions.splice(i, 0, tx);
 
-			dst_set_state('transactions', txs).then(function() {
-				dst_reload_tx_list(txs);
+			dst_set_state('transactions', state.transactions).then(function() {
+				let tr = dst_make_tx_tr(tx, state.accounts.find(a => a.id === tx.account), state.securities[tx.ticker]);
+				if(i === imax) {
+					tbody.prepend(tr);
+				} else {
+					tbody.children().filter((_, tr) => $(tr).data('id') === state.transactions[i+1].id).after(tr);
+				}
 				modal.modal('hide');
 			});
 		});
@@ -277,7 +270,7 @@ $(function() {
 
 	$("div#tx-editor").on('click', 'button.delete-tx', function() {
 		let tr = $(this).closest('tr');
-		if(!confirm('Really delete transaction #' + tr.data('idx') + '?')) {
+		if(!confirm('Really delete transaction #' + tr.data('id') + '?')) {
 			return;
 		}
 		$(this).prop('disabled', true);
@@ -295,7 +288,7 @@ $(function() {
 		let modal = $("div#tx-editor-modal");
 
 		dst_get_state('transactions').then(txs => {
-			let tx = txs[tr.data('idx')];
+			let tx = txs.find(tx => tx.id === tr.data('id'));
 
 			dst_reset_tx_modal(modal);
 			modal.find('.modal-title').text('Edit transaction');
@@ -308,11 +301,13 @@ $(function() {
 				modal.find('input#tx-editor-split-after').val(tx.after);
 			} else if(tx.type === 'cash') {
 				modal.find('select#tx-editor-type').val('cash').change();
+				modal.find('select#tx-editor-account').val(tx.account);
 				modal.find('input#tx-editor-amount').val(tx.quantity);
 				modal.find('input#tx-editor-fee').val(tx.fee);
 				modal.find('input#tx-editor-total').val(tx.quantity - tx.fee);
 			} else if(tx.type === 'security') {
 				modal.find('select#tx-editor-type').val('security').change();
+				modal.find('select#tx-editor-account').val(tx.account);
 				modal.find('select#tx-editor-security').val(tx.ticker);
 				modal.find('input#tx-editor-quantity').val(tx.quantity);
 				modal.find('input#tx-editor-price').val(tx.price);
@@ -320,9 +315,11 @@ $(function() {
 				modal.find('input#tx-editor-total').val(-tx.quantity * tx.price - tx.fee);
 			}
 
-			modal.data('idx', tr.data('idx')).modal('show');
+			modal.data('id', tr.data('id')).modal('show');
 		});
 	});
 
 	dst_fetch_and_reload_tx_list();
+	dst_fill_account_select($("select#tx-editor-account"));
+	dst_fill_security_select($("select#tx-editor-security"));
 });
