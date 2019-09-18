@@ -15,6 +15,10 @@
 
 "use strict";
 
+let dst_on_accounts_change_funcs = [];
+const dst_on_accounts_change = f => dst_on_accounts_change_funcs.push(f);
+const dst_trigger_accounts_change = () => dst_on_accounts_change_funcs.forEach(f => f());
+
 const dst_fetch_and_reload_account_list = function() {
 	let tbody = $("div#acct-editor tbody");
 	tbody.empty();
@@ -80,7 +84,6 @@ const dst_reset_acct_modal = function(modal) {
 	modal.data('idx', -1);
 };
 
-/* XXX: refactor in a “on account list change” event-based system */
 const dst_fill_account_select = function(select) {
 	dst_get_state('accounts').then(accounts => {
 		if(accounts === null) accounts = [];
@@ -89,7 +92,7 @@ const dst_fill_account_select = function(select) {
 	});
 };
 
-$(function() {
+dst_on_load(function() {
 	$("button#acct-editor-new-acct").click(function() {
 		let modal = $("div#acct-editor-modal");
 		dst_reset_acct_modal(modal);
@@ -106,7 +109,7 @@ $(function() {
 			dst_reset_acct_modal(modal);
 			modal.find(".modal-title").text('Edit account #' + tr.data('idx'));
 			modal.find('input#acct-editor-acct-name').val(a.name);
-			modal.find('select#acct-editor-acct-ccy').val(a.currency);
+			modal.find('select#acct-editor-acct-ccy').val(a.currency).change();
 			modal.find('input#acct-editor-fee-flat').val(a.fees[0]);
 			modal.find('input#acct-editor-fee-percent').val(a.fees[1]);
 			modal.find('input#acct-editor-fee-pershare').val(a.fees[2]);
@@ -122,14 +125,14 @@ $(function() {
 			let accountid = state.accounts[tr.data('idx')].id;
 
 			if(state.transactions.some(tx => tx.account === accountid)) {
-				/* XXX */
+				/* XXX: ask if it's ok to delete those transactions */
 				alert('Some transactions are still tied to this account; cannot continue.');
 				btn.prop('disabled', false);
 				return;
 			}
 
 			if(!confirm('Really delete account: ' + state.accounts[tr.data('idx')].name + '?')) {
-				/* XXX */
+				/* XXX: use something prettier */
 				btn.prop('disabled', false);
 				return;
 
@@ -138,7 +141,7 @@ $(function() {
 			state.accounts.splice(tr.data('idx'), 1);
 			dst_set_state('accounts', state.accounts).then(function() {
 				tr.fadeOut(200, function() {
-					dst_fill_account_select($("select#tx-editor-account"));
+					dst_trigger_accounts_change();
 					dst_reload_account_list(state.accounts);
 				});
 			});
@@ -188,7 +191,7 @@ $(function() {
 
 			dst_set_state('accounts', accounts).then(function() {
 				dst_reload_account_list(accounts);
-				dst_fill_account_select($("select#tx-editor-account"));
+				dst_trigger_accounts_change();
 				modal.modal('hide');
 			});
 		});
@@ -197,6 +200,8 @@ $(function() {
 		$(this).closest('form').find('.acct-editor-fee-currency').text($(this).val());
 	});
 
-	dst_fetch_and_reload_account_list();
 	dst_fill_currency_select($("select#acct-editor-acct-ccy"));
+	dst_fetch_and_reload_account_list();
 });
+
+dst_on_load_after(dst_trigger_accounts_change);

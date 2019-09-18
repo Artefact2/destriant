@@ -19,7 +19,7 @@ const dst_reset_tx_modal = function(modal) {
 	modal.find('.modal-title').text('Input transaction');
 	modal.find("button#tx-editor-modal-save").prop('disabled', false);
 	modal.find('form')[0].reset();
-	modal.find('select#tx-editor-type').change();
+	modal.find('select').change();
 	modal.find('input#tx-editor-date').val(new Date().toISOString().split('T')[0]);
 	modal.find('.is-invalid').removeClass('is-invalid');
 	modal.data('id', -1);
@@ -97,7 +97,7 @@ const dst_make_tx_tr = function(tx, account, security) {
 	return tr;
 };
 
-$(function() {
+dst_on_load(function() {
 	$("button#tx-editor-new-tx").click(function() {
 		let modal = $("div#tx-editor-modal");
 		dst_reset_tx_modal(modal);
@@ -115,11 +115,11 @@ $(function() {
 		s.closest('form').find('.maybe-disable.enable-' + s.val()).prop('disabled', false);
 	});
 	$("select#tx-editor-account").change(function() {
-		let ccy = $(this).children('option:selected').data('currency');
+		let ccy = $(this).children(':selected').data('currency');
 		$("div#tx-editor-total-currency, div#tx-editor-fee-currency, div#tx-editor-amount-currency").text(ccy);
 	});
 	$("select#tx-editor-security").change(function() {
-		let ccy = $(this).children('option:selected').data('currency');
+		let ccy = $(this).children(':selected').data('currency');
 		$("div#tx-editor-price-currency").text(ccy);
 	});
 
@@ -296,19 +296,19 @@ $(function() {
 
 			if(tx.type === 'split') {
 				modal.find('select#tx-editor-type').val('split').change();
-				modal.find('select#tx-editor-security').val(tx.ticker);
+				modal.find('select#tx-editor-security').val(tx.ticker).change();
 				modal.find('input#tx-editor-split-before').val(tx.before);
 				modal.find('input#tx-editor-split-after').val(tx.after);
 			} else if(tx.type === 'cash') {
 				modal.find('select#tx-editor-type').val('cash').change();
-				modal.find('select#tx-editor-account').val(tx.account);
+				modal.find('select#tx-editor-account').val(tx.account).change();
 				modal.find('input#tx-editor-amount').val(tx.quantity);
 				modal.find('input#tx-editor-fee').val(tx.fee);
 				modal.find('input#tx-editor-total').val(tx.quantity - tx.fee);
 			} else if(tx.type === 'security') {
 				modal.find('select#tx-editor-type').val('security').change();
-				modal.find('select#tx-editor-account').val(tx.account);
-				modal.find('select#tx-editor-security').val(tx.ticker);
+				modal.find('select#tx-editor-account').val(tx.account).change();
+				modal.find('select#tx-editor-security').val(tx.ticker).change();
 				modal.find('input#tx-editor-quantity').val(tx.quantity);
 				modal.find('input#tx-editor-price').val(tx.price);
 				modal.find('input#tx-editor-fee').val(tx.fee);
@@ -319,7 +319,12 @@ $(function() {
 		});
 	});
 
-	dst_fetch_and_reload_tx_list();
-	dst_fill_account_select($("select#tx-editor-account"));
-	dst_fill_security_select($("select#tx-editor-security"));
+	dst_on_securities_change(() => {
+		dst_fill_security_select($("select#tx-editor-security"));
+		dst_fetch_and_reload_tx_list();
+	});
+	dst_on_accounts_change(() => {
+		dst_fill_account_select($("select#tx-editor-account"));
+		dst_fetch_and_reload_tx_list();
+	});
 });

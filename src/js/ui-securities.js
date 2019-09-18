@@ -15,6 +15,10 @@
 
 "use strict";
 
+let dst_on_securities_change_funcs = [];
+const dst_on_securities_change = f => dst_on_securities_change_funcs.push(f);
+const dst_trigger_securities_change = () => dst_on_securities_change_funcs.forEach(f => f());
+
 const dst_reset_securities_modal = function(modal) {
 	modal.find('.modal-title').text('New security');
 	modal.find('.is-invalid').removeClass('is-invalid');
@@ -69,7 +73,6 @@ const dst_reload_securities_list = function(securities) {
 	}
 };
 
-/* XXX */
 const dst_fill_security_select = function(select) {
 	dst_get_state('securities').then(securities => {
 		if(securities === null) securities = {};
@@ -80,7 +83,7 @@ const dst_fill_security_select = function(select) {
 	});
 };
 
-$(function() {
+dst_on_load(function() {
 	$("button#security-editor-new-security").click(function() {
 		let modal = $("div#security-editor-modal");
 		dst_reset_securities_modal(modal);
@@ -127,7 +130,7 @@ $(function() {
 
 			dst_set_state('securities', secs).then(function() {
 				dst_reload_securities_list(secs);
-				dst_fill_security_select($("select#tx-editor-security"));
+				dst_trigger_securities_change();
 				modal.modal('hide');
 			});
 		});
@@ -156,14 +159,14 @@ $(function() {
 		dst_get_states([ 'securities', 'transactions' ]).then(state => {
 			if(state.transactions === null) state.transactions = [];
 
-			/* XXX */
+			/* XXX: ask if it's okay to delete those transactions */
 			if(state.transactions.some(tx => tx.ticker === tr.data('ticker'))) {
 				alert('Some transactions are still tied to this security; cannot continue.');
 				btn.prop('disabled', false);
 				return;
 			}
 
-			/* XXX */
+			/* XXX: use something prettier */
 			if(!confirm('Really delete security: ' + tr.data('ticker') + '?')) {
 				btn.prop('disabled', false);
 				return;
@@ -175,7 +178,7 @@ $(function() {
 					if($.isEmptyObject(state.securities)) {
 						dst_reload_securities_list(state.securities);
 					}
-					dst_fill_security_select($("select#tx-editor-security"));
+					dst_trigger_securities_change();
 				});
 			});
 		});
@@ -185,3 +188,5 @@ $(function() {
 	dst_fill_exchange_select($("select#security-editor-exchange"));
 	dst_fetch_and_reload_securities_list();
 });
+
+dst_on_load_after(dst_trigger_securities_change);

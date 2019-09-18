@@ -36,7 +36,7 @@ const dst_set_states = function(obj) {
 	return Promise.all(Object.keys(obj).map(k => dst_set_state(k, obj[k])));
 };
 
-$(function() {
+dst_on_load(function() {
 	if(!localforage.supports(localforage.INDEXEDDB)) {
 		console.log('Indexed DB not supported, maximum portfolio size will be impacted');
 	}

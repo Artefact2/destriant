@@ -15,6 +15,11 @@
 
 "use strict";
 
+let dst_on_load_funcs = [];
+let dst_on_load_after_funcs = [];
+const dst_on_load = f => dst_on_load_funcs.push(f);
+const dst_on_load_after = f => dst_on_load_after_funcs.push(f);
+
 const dst_format_fixed_amount = function(amount, decimals) {
 	let rounded = amount.toFixed(decimals);
 
@@ -46,4 +51,6 @@ const dst_format_currency_amount = function(ccy, amount) {
 
 $(function() {
 	$("p#js-warning").remove();
+	dst_on_load_funcs.forEach(f => f());
+	dst_on_load_after_funcs.forEach(f => f());
 });

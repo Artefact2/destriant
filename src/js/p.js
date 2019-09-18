@@ -15,7 +15,7 @@
 
 "use strict";
 
-$(function() {
+dst_on_load(function() {
 	$("nav a.p-link").click(function(e) {
 		e.preventDefault();
 		let anchor = $(this);
