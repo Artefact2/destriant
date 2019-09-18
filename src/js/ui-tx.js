@@ -89,7 +89,7 @@ const dst_reload_tx_list = function(txs) {
 
 			case 'cash':
 				tr.append($(document.createElement('td')).text(accountmap[tx.account].name));
-				tr.append($(document.createElement('td')).text(tx.quantity.toString()).addClass('text-right').prop('colspan', 2));
+				tr.append($(document.createElement('td')).append(dst_format_fixed_amount(tx.quantity, 4)).addClass('text-right').prop('colspan', 2));
 				tr.append($(document.createElement('td')));
 				tr.append($(document.createElement('td')).append(dst_format_currency_amount(accountmap[tx.account].currency, tx.fee)).addClass('text-right'));
 				tr.append($(document.createElement('td')).append(dst_format_currency_amount(accountmap[tx.account].currency, tx.quantity - tx.fee)).addClass('text-right'));
@@ -98,7 +98,7 @@ const dst_reload_tx_list = function(txs) {
 			case 'security':
 				tr.append($(document.createElement('td')).text(accountmap[tx.account].name));
 				tr.append($(document.createElement('td')).text(tx.ticker));
-				tr.append($(document.createElement('td')).text(tx.quantity.toString()).addClass('text-right'));
+				tr.append($(document.createElement('td')).append(dst_format_fixed_amount(tx.quantity, 4)).addClass('text-right'));
 				tr.append($(document.createElement('td')).append(dst_format_currency_amount(state.securities[tx.ticker].currency, tx.price)).addClass('text-right'));
 				tr.append($(document.createElement('td')).append(dst_format_currency_amount(accountmap[tx.account].currency, tx.fee)).addClass('text-right'));
 				tr.append($(document.createElement('td')).append(dst_format_currency_amount(accountmap[tx.account].currency, -tx.quantity * tx.price - tx.fee)).addClass('text-right'));
