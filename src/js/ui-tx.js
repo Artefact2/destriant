@@ -276,10 +276,10 @@ dst_on_load(function() {
 		$(this).prop('disabled', true);
 
 		dst_get_state('transactions').then(txs => {
-			txs.splice(tr.data('idx'), 1);
+			txs.splice(txs.findIndex(tx => tx.id === tr.data('id')), 1);
 			dst_set_state('transactions', txs).then(function() {
 				tr.fadeOut(200, function() {
-					dst_reload_tx_list(txs);
+					tr.remove();
 				});
 			});
 		});
@@ -319,10 +319,7 @@ dst_on_load(function() {
 		});
 	});
 
-	dst_on_securities_change(() => {
-		dst_fill_security_select($("select#tx-editor-security"));
-		dst_fetch_and_reload_tx_list();
-	});
+	dst_on_securities_change(() => dst_fill_security_select($("select#tx-editor-security")));
 	dst_on_accounts_change(() => {
 		dst_fill_account_select($("select#tx-editor-account"));
 		dst_fetch_and_reload_tx_list();
