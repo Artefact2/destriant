@@ -41,7 +41,7 @@ const dst_reload_tx_list = function(txs) {
 	tbody.empty();
 
 	if(txs.length === 0) {
-		tbody.append($(document.createElement('tr')).append(
+		tbody.append($(document.createElement('tr')).addClass('placeholder').append(
 			$(document.createElement('td')).prop('colspan', 10).text('Transaction list is empty.')
 		));
 		return;
@@ -64,7 +64,7 @@ const dst_make_tx_tr = function(tx, account, security) {
 	switch(tx.type) {
 	case 'split':
 		tr.append($(document.createElement('td')));
-		tr.append($(document.createElement('td')).text(tx.ticker));
+		tr.append($(document.createElement('td')).append($(document.createElement('strong')).text(tx.ticker)));
 		tr.append($(document.createElement('td')).text(
 			tx.before.toString() + ':' + tx.after.toString()
 		).addClass('text-right'));
@@ -72,7 +72,7 @@ const dst_make_tx_tr = function(tx, account, security) {
 		break;
 
 	case 'cash':
-		tr.append($(document.createElement('td')).text(account.name));
+		tr.append($(document.createElement('td')).append($(document.createElement('strong')).text(account.name)));
 		tr.append($(document.createElement('td')).append(dst_format_fixed_amount(tx.quantity, 4)).addClass('text-right').prop('colspan', 2));
 		tr.append($(document.createElement('td')));
 		tr.append($(document.createElement('td')).append(dst_format_currency_amount(account.currency, tx.fee)).addClass('text-right'));
@@ -80,8 +80,8 @@ const dst_make_tx_tr = function(tx, account, security) {
 		break;
 
 	case 'security':
-		tr.append($(document.createElement('td')).text(account.name));
-		tr.append($(document.createElement('td')).text(tx.ticker));
+		tr.append($(document.createElement('td')).append($(document.createElement('strong')).text(account.name)));
+		tr.append($(document.createElement('td')).append($(document.createElement('strong')).text(tx.ticker)));
 		tr.append($(document.createElement('td')).append(dst_format_fixed_amount(tx.quantity, 4)).addClass('text-right'));
 		tr.append($(document.createElement('td')).append(dst_format_currency_amount(security.currency, tx.price)).addClass('text-right'));
 		tr.append($(document.createElement('td')).append(dst_format_currency_amount(account.currency, tx.fee)).addClass('text-right'));
@@ -263,6 +263,7 @@ dst_on_load(function() {
 				} else {
 					tbody.children().filter((_, tr) => $(tr).data('id') === state.transactions[i+1].id).after(tr);
 				}
+				tbody.children('tr.placeholder').remove();
 				modal.modal('hide');
 			});
 		});

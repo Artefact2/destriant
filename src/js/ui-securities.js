@@ -156,12 +156,19 @@ dst_on_load(function() {
 		let btn = $(this).prop('disabled', true);
 		let tr = btn.closest('tr');
 
-		dst_get_states([ 'securities', 'transactions' ]).then(state => {
+		dst_get_states([ 'securities', 'transactions', 'prices' ]).then(state => {
 			if(state.transactions === null) state.transactions = [];
 
 			/* XXX: ask if it's okay to delete those transactions */
 			if(state.transactions.some(tx => tx.ticker === tr.data('ticker'))) {
 				alert('Some transactions are still tied to this security; cannot continue.');
+				btn.prop('disabled', false);
+				return;
+			}
+
+			/* XXX: ask for deletion */
+			if(tr.data('ticker') in state.prices) {
+				alert('Some prices are still tied to this security; cannot continue.');
 				btn.prop('disabled', false);
 				return;
 			}

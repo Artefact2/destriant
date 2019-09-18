@@ -34,7 +34,7 @@ $new = [
 	],
 	'securities' => [],
 	'transactions' => [],
-	'prices' => [],
+	'prices' => null,
 ];
 $cur = null;
 foreach($old['lines'] as $l) {
