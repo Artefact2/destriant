@@ -55,6 +55,7 @@ $(function() {
 			'securities',
 			'transactions',
 		]).then(pf => {
+			pf['destriant-version'] = 1;
 			let b = new Blob([ JSON.stringify(pf) ], { type: 'application/json' });
 			let uri = URL.createObjectURL(b);
 			let fn = 'destriant_' + Date.now().toString() + '.json';
@@ -82,7 +83,15 @@ $(function() {
 		$("div#import-pf-modal button#import-pf-modal-import").prop('disabled', true);
 		let r = new FileReader();
 		r.onload = function() {
-			dst_set_states(JSON.parse(r.result)).then(function() {
+			let pf = JSON.parse(r.result);
+			console.assert(pf['destriant-version'] === 1);
+			console.assert(!('accounts' in pf) || Array.isArray(pf.accounts));
+			console.assert(!('transactions' in pf) || Array.isArray(pf.transactions));
+			console.assert(!('securities' in pf) || (pf.securities !== null && typeof pf.securities === 'object'));
+			console.assert(!('prices' in pf) || (pf.prices !== null && typeof pf.prices === 'object'));
+			/* XXX: do more thourough validation here, malicious imported data can be harmful */
+
+			dst_set_states(pf).then(function() {
 				location.reload();
 			});
 		};
