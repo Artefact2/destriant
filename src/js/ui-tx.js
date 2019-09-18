@@ -92,7 +92,7 @@ const dst_reload_tx_list = function(txs) {
 				tr.append($(document.createElement('td')).text(tx.quantity.toString()).addClass('text-right').prop('colspan', 2));
 				tr.append($(document.createElement('td')));
 				tr.append($(document.createElement('td')).append(dst_format_currency_amount(accountmap[tx.account].currency, tx.fee)).addClass('text-right'));
-				tr.append($(document.createElement('td')).append(dst_format_currency_amount(accountmap[tx.account].currency, tx.total)).addClass('text-right'));
+				tr.append($(document.createElement('td')).append(dst_format_currency_amount(accountmap[tx.account].currency, tx.quantity - tx.fee)).addClass('text-right'));
 				break;
 
 			case 'security':
@@ -101,7 +101,7 @@ const dst_reload_tx_list = function(txs) {
 				tr.append($(document.createElement('td')).text(tx.quantity.toString()).addClass('text-right'));
 				tr.append($(document.createElement('td')).append(dst_format_currency_amount(state.securities[tx.ticker].currency, tx.price)).addClass('text-right'));
 				tr.append($(document.createElement('td')).append(dst_format_currency_amount(accountmap[tx.account].currency, tx.fee)).addClass('text-right'));
-				tr.append($(document.createElement('td')).append(dst_format_currency_amount(accountmap[tx.account].currency, tx.total)).addClass('text-right'));
+				tr.append($(document.createElement('td')).append(dst_format_currency_amount(accountmap[tx.account].currency, -tx.quantity * tx.price - tx.fee)).addClass('text-right'));
 				break;
 			}
 
@@ -144,6 +144,7 @@ $(function() {
 	$("div#tx-editor-modal form").submit(function() {
 		let modal = $("div#tx-editor-modal");
 		let type = modal.find('select#tx-editor-type').val();
+		let total = NaN;
 		let tx = {
 			date: modal.find('input#tx-editor-date').val(),
 		};
@@ -151,7 +152,7 @@ $(function() {
 		if(type !== 'split') {
 			tx.account = parseInt(modal.find('select#tx-editor-account').val(), 10);
 			tx.fee = parseFloat(modal.find('input#tx-editor-fee').val());
-			tx.total = parseFloat(modal.find('input#tx-editor-total').val());
+			total = parseFloat(modal.find('input#tx-editor-total').val());
 		}
 
 		if(type === 'cash' || type === 'cgain') {
@@ -191,20 +192,20 @@ $(function() {
 		}
 
 		if(tx.type === 'cash') {
-			if(isNaN(tx.total)) {
-				tx.total = tx.quantity - tx.fee;
+			if(isNaN(total)) {
+				total = tx.quantity - tx.fee;
 			} else if(isNaN(tx.quantity)) {
-				tx.quantity = tx.total + tx.fee;
+				tx.quantity = total + tx.fee;
 			} else if(isNaN(tx.fee)) {
-				tx.fee = tx.quantity - tx.total;
+				tx.fee = tx.quantity - total;
 			}
 
-			if(isNaN(tx.fee) || isNaN(tx.total) || isNaN(tx.quantity)) {
+			if(isNaN(tx.fee) || isNaN(total) || isNaN(tx.quantity)) {
 				modal.find('input#tx-editor-fee, input#tx-editor-total, input#tx-editor-amount').addClass('is-invalid');
 				/* XXX: show some kind of error message */
 				return;
 			}
-			if(Math.abs(tx.total + tx.fee - tx.quantity) >= 1e-6) {
+			if(Math.abs(total + tx.fee - tx.quantity) >= 1e-6) {
 				modal.find('input#tx-editor-fee, input#tx-editor-total, input#tx-editor-amount').addClass('is-invalid');
 				/* XXX: show some kind of error message */
 				return;
@@ -217,23 +218,23 @@ $(function() {
 		} else if(tx.type === 'security') {
 			/* XXX: flip total if buying and total > 0 */
 
-			if(isNaN(tx.total)) {
-				tx.total = -tx.quantity * tx.price - tx.fee;
+			if(isNaN(total)) {
+				total = -tx.quantity * tx.price - tx.fee;
 			} else if(isNaN(tx.fee)) {
-				tx.fee = -tx.quantity * tx.price - tx.total;
+				tx.fee = -tx.quantity * tx.price - total;
 			} else if(isNaN(tx.quantity)) {
-				tx.quantity = (-tx.total - tx.fee) / tx.price;
+				tx.quantity = (-total - tx.fee) / tx.price;
 			} else if(isNaN(tx.price)) {
-				tx.price = (-tx.total - tx.fee) / tx.quantity;
+				tx.price = (-total - tx.fee) / tx.quantity;
 			}
 
-			if(isNaN(tx.total) || isNaN(tx.fee) || isNaN(tx.quantity) || isNaN(tx.price)) {
+			if(isNaN(total) || isNaN(tx.fee) || isNaN(tx.quantity) || isNaN(tx.price)) {
 				modal.find('input#tx-editor-fee, input#tx-editor-total, input#tx-editor-quantity, input#tx-editor-price').addClass('is-invalid');
 				/* XXX: show some kind of error message */
 				return;
 			}
 
-			if(Math.abs(tx.total + tx.quantity * tx.price + tx.fee) >= 1e-6) {
+			if(Math.abs(total + tx.quantity * tx.price + tx.fee) >= 1e-6) {
 				modal.find('input#tx-editor-fee, input#tx-editor-total, input#tx-editor-quantity, input#tx-editor-price').addClass('is-invalid');
 				/* XXX: show some kind of error message */
 				return;
@@ -309,14 +310,14 @@ $(function() {
 				modal.find('select#tx-editor-type').val('cash').change();
 				modal.find('input#tx-editor-amount').val(tx.quantity);
 				modal.find('input#tx-editor-fee').val(tx.fee);
-				modal.find('input#tx-editor-total').val(tx.total);
+				modal.find('input#tx-editor-total').val(tx.quantity - tx.fee);
 			} else if(tx.type === 'security') {
 				modal.find('select#tx-editor-type').val('security').change();
 				modal.find('select#tx-editor-security').val(tx.ticker);
 				modal.find('input#tx-editor-quantity').val(tx.quantity);
 				modal.find('input#tx-editor-price').val(tx.price);
 				modal.find('input#tx-editor-fee').val(tx.fee);
-				modal.find('input#tx-editor-total').val(tx.total);
+				modal.find('input#tx-editor-total').val(-tx.quantity * tx.price - tx.fee);
 			}
 
 			modal.data('idx', tr.data('idx')).modal('show');
