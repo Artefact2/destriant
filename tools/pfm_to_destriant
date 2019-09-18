@@ -59,8 +59,10 @@ usort($old['tx'], function($a, $b) {
 });
 
 foreach($old['tx'] as $tx) {
+	$id = 0;
 	assert(isset($old['lines'][$tx['ticker']]));
 	$new['transactions'][] = [
+		'id' => ++$id,
 		'account' => 0,
 		'date' => gmdate('Y-m-d', $tx['ts']),
 		'type' => 'security',
