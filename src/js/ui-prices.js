@@ -138,6 +138,26 @@ dst_on_load(() => {
 		});
 	});
 
+	$("button#price-editor-fetch").click(function() {
+		let btn = $(this).prop('disabled', true);
+		dst_get_states([ 'securities', 'prices' ]).then(state => {
+			Promise.all(Object.values(state.securities).map(s => dst_fetch_quotes(s).then(quotes => [ s.ticker, quotes ]))).then(prices => {
+				prices.forEach(pdata => {
+					let ticker = pdata[0], quotes = pdata[1];
+					if(!(ticker in state.prices)) state.prices[ticker] = {};
+					for(let d in quotes) {
+						state.prices[ticker][d] = quotes[d];
+					}
+				});
+
+				dst_set_state('prices', state.prices).then(() => {
+					dst_reload_price_table(state.prices);
+					btn.prop('disabled', false);
+				});
+			});
+		});
+	});
+
 	dst_on_securities_change(() => dst_fill_security_select($("select#price-editor-security")));
 	dst_fetch_and_reload_price_table();
 });

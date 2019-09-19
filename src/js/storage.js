@@ -17,11 +17,11 @@
 
 const dst_get_state = function(key) {
 	/* XXX: better error handling */
-	return localforage.getItem(key).catch(err => console.log(key, err));
+	return localforage.getItem(key).catch(err => console.error(key, err));
 };
 
 const dst_set_state = function(key, val) {
-	return localforage.setItem(key, val).catch(err => console.log(key, err));
+	return localforage.setItem(key, val).catch(err => console.error(key, err));
 };
 
 const dst_get_states = function(keys) {
@@ -38,7 +38,7 @@ const dst_set_states = function(obj) {
 
 dst_on_load(function() {
 	if(!localforage.supports(localforage.INDEXEDDB)) {
-		console.log('Indexed DB not supported, maximum portfolio size will be impacted');
+		console.error('Indexed DB not supported, maximum portfolio size will be impacted');
 	}
 
 	$("a#nav-save-pf").click(function() {
