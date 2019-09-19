@@ -34,7 +34,7 @@ $new = [
 	],
 	'securities' => [],
 	'transactions' => [],
-	'prices' => null,
+	'prices' => [],
 ];
 $cur = null;
 foreach($old['lines'] as $l) {
@@ -52,6 +52,12 @@ foreach($old['lines'] as $tkr => $line) {
 		'name' => (string)$line['name'],
 		'ticker' => (string)$tkr,
 	];
+
+	if(!isset($old['hist'][$tkr])) continue;
+	$new['prices'][$tkr] = [];
+	foreach($old['hist'][$tkr] as $date => $price) {
+		$new['prices'][$tkr][$date] = floatval($price);
+	}
 }
 
 usort($old['tx'], function($a, $b) {
@@ -71,6 +77,11 @@ foreach($old['tx'] as $tx) {
 		'quantity' => floatval($tx['buy']),
 		'price' => floatval($tx['price']),
 	];
+}
+
+foreach([ 'prices', 'securities' ] as $k) {
+	/* Prevent json_encode from outputting [], as these should be associative arrays */
+	if($new[$k] === []) $new[$k] = null;
 }
 
 echo json_encode($new), PHP_EOL;
