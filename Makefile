@@ -1,4 +1,8 @@
-all: public/destriant.js public/destriant.css fetch-ext
+all: public/index.xhtml public/destriant.js public/destriant.css fetch-ext
+
+public/index.xhtml: public/index.html
+	echo '<?xml version="1.0" encoding="utf-8"?>' > $@
+	tail -n+2 $< >> $@
 
 public/destriant.js: src/js/main.js $(shell find src/js -name "*.js" -not -name "main.js")
 	cat $^ > $@
