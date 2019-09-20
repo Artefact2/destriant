@@ -35,9 +35,18 @@ const dst_reload_price_table = prices => {
 	tbody.empty();
 	if(prices === null) prices = {};
 
+	let fsec = $("select#price-editor-filter-security").val();
+	let fbefore = $("input#price-editor-filter-before").val();
+	let fafter = $("input#price-editor-filter-after").val();
+
 	dst_get_state('securities').then(securities => {
 		for(let ticker in prices) {
+			if(fsec !== null && fsec !== "__all__" && fsec !== ticker) continue;
+
 			for(let date in prices[ticker]) {
+				if(fbefore !== "" && fbefore < date) continue;
+				if(fafter !== "" && fafter > date) continue;
+
 				tbody.append(dst_make_price_tr(
 					ticker, date, prices[ticker][date],
 					securities[ticker].currency
@@ -158,6 +167,19 @@ dst_on_load(() => {
 		});
 	});
 
-	dst_on_securities_change(() => dst_fill_security_select($("select#price-editor-security")));
+	$("input#price-editor-filter-before").val(new Date().toISOString().split('T')[0]);
+	$("input#price-editor-filter-after").val(new Date(Date.now() - 86400000 * 14).toISOString().split('T')[0]);
+	$("form#price-editor-filter").submit(dst_fetch_and_reload_price_table);
+
+	dst_on_securities_change(() => {
+		let fs = $("select#price-editor-filter-security");
+		let fsv = fs.val();
+		dst_fill_security_select($("select#price-editor-security, select#price-editor-filter-security")).then(() => {
+			fs.prepend($(document.createElement('option')).prop('value', '__all__').text('All securities'));
+			fs.val(fsv);
+			if(fs.val() === null) fs.val('__all__');
+		});
+	});
+
 	dst_fetch_and_reload_price_table();
 });
