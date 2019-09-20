@@ -10,12 +10,16 @@ public/index.xhtml: public/index.html
 	tail -n+2 $< >> $@
 
 public/destriant.js: src/js/main.js $(shell find src/js -name "*.js" -not -name "main.js")
-	cat $^ > $@
+	echo "/*! Destriant (https://gitlab.com/artefact2/destriant) */" > $@
+	echo "/*! Copyright 2019 Destriant contributors (https://gitlab.com/artefact2/destriant/-/graphs/master) */" >> $@
+	echo "/*! Licensed under the Apache License, version 2.0 (http://www.apache.org/licenses/LICENSE-2.0) */" >> $@
+	echo "\"use strict\";" >> $@
+	tail -q -n+18 $^ >> $@
 
 public/destriant.css: src/scss/main.scss $(shell find src/scss -name "*.scss" -not -name "main.scss")
 	cat $^ | sassc -s -t compressed $@
 
-fetch-ext: public/ext/bootstrap.min.css public/ext/bootstrap.bundle.min.js public/ext/jquery.min.js public/ext/localforage.min.js
+fetch-ext: public/ext/bootstrap.min.css public/ext/bootstrap.bundle.min.js public/ext/bootstrap.bundle.min.js.map public/ext/jquery.min.js public/ext/localforage.min.js
 
 public/ext:
 	mkdir $@
@@ -26,6 +30,9 @@ public/ext/bootstrap.min.css:
 
 public/ext/bootstrap.bundle.min.js:
 	wget -O $@ "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js"
+
+public/ext/bootstrap.bundle.min.js.map:
+	wget -O $@ "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js.map"
 
 public/ext/jquery.min.js:
 	make public/ext
