@@ -40,17 +40,32 @@ const dst_reload_tx_list = function(txs) {
 	if(txs === null) txs = [];
 	tbody.empty();
 
-	if(txs.length === 0) {
-		tbody.append($(document.createElement('tr')).addClass('placeholder').append(
-			$(document.createElement('td')).prop('colspan', 10).text('Transaction list is empty.')
-		));
-		return;
-	}
-
 	dst_get_states([ 'securities', 'accounts' ]).then(state => {
 		let accountmap = {};
 		state.accounts.forEach(a => accountmap[a.id] = a);
-		txs.forEach(tx => tbody.prepend(dst_make_tx_tr(tx, accountmap[tx.account], state.securities[tx.ticker])));
+
+		let faccount = $("select#tx-editor-filter-account").val();
+		if(faccount !== null && faccount !== "__all__") faccount = parseInt(faccount, 10);
+
+		let fsecurity = $("select#tx-editor-filter-security").val();
+		let fbefore = $("input#tx-editor-filter-before").val();
+		let fafter = $("input#tx-editor-filter-after").val();
+
+		txs.forEach(tx => {
+			if(faccount !== null && faccount !== "__all__" && tx.account !== faccount) return;
+			if(fsecurity !== null && fsecurity !== "__all__" && fsecurity !== tx.ticker) return;
+			if(fbefore !== "" && fbefore < tx.date) return;
+			if(fafter !== "" && fafter > tx.date) return;
+
+			tbody.prepend(dst_make_tx_tr(tx, accountmap[tx.account], state.securities[tx.ticker]));
+		});
+
+		if(tbody.children().length === 0) {
+			tbody.append($(document.createElement('tr')).addClass('placeholder').append(
+				$(document.createElement('td')).prop('colspan', 10).text('Transaction list is empty or all filtered out.')
+			));
+			return;
+		}
 	});
 };
 
@@ -251,6 +266,7 @@ dst_on_load(function() {
 				tx.id = state.transactions.reduce((m, tx) => Math.max(m, tx.id), 0) + 1;
 			}
 
+			/* XXX: transaction may be filtered out */
 			/* XXX: inefficient, use a binary search */
 			let i, imax = state.transactions.length;
 			for(i = 0; i < imax && state.transactions[i].date <= tx.date; ++i) { }
@@ -320,9 +336,13 @@ dst_on_load(function() {
 		});
 	});
 
-	dst_on_securities_change(() => dst_fill_security_select($("select#tx-editor-security")));
+	$("input#tx-editor-filter-before").val(new Date().toISOString().split('T')[0]);
+	$("input#tx-editor-filter-after").val(new Date(Date.now() - 86400000 * 100).toISOString().split('T')[0]);
+	$("form#tx-editor-filter").submit(dst_fetch_and_reload_tx_list);
+
+	dst_on_securities_change(() => dst_fill_security_select($("select#tx-editor-security, select#tx-editor-filter-security")));
 	dst_on_accounts_change(() => {
-		dst_fill_account_select($("select#tx-editor-account"));
+		dst_fill_account_select($("select#tx-editor-account, select#tx-editor-filter-account"));
 		dst_fetch_and_reload_tx_list();
 	});
 });

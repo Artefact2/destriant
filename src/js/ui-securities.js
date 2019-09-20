@@ -76,8 +76,8 @@ const dst_reload_securities_list = function(securities) {
 const dst_fill_security_select = function(select) {
 	return dst_get_state('securities').then(securities => {
 		if(securities === null) securities = {};
-		select.empty();
-		Object.values(securities).forEach(s => select.append($(document.createElement('option')).prop('value', s.ticker).text(
+		select.children('option.auto').remove();
+		Object.values(securities).forEach(s => select.append($(document.createElement('option')).addClass('auto').prop('value', s.ticker).text(
 			s.ticker + ', ' + s.name
 		).data('currency', s.currency)));
 	});

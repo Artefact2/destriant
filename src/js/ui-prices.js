@@ -58,7 +58,7 @@ const dst_reload_price_table = prices => {
 			tbody.append(
 				$(document.createElement('tr'))
 					.addClass('placeholder')
-					.append($(document.createElement('td')).prop('colspan', 4).text('Price list is empty.'))
+					.append($(document.createElement('td')).prop('colspan', 4).text('Price list is empty or all filtered out.'))
 			);
 		}
 	});
@@ -102,6 +102,7 @@ dst_on_load(() => {
 
 				if(oldtr.length === 0) {
 					/* XXX: insert at the correct place */
+					/* XXX: may even be filtered out */
 					$("div#price-editor tbody").append(tr).children('tr.placeholder').remove();
 				} else {
 					oldtr.replaceWith(tr);
@@ -171,15 +172,6 @@ dst_on_load(() => {
 	$("input#price-editor-filter-after").val(new Date(Date.now() - 86400000 * 14).toISOString().split('T')[0]);
 	$("form#price-editor-filter").submit(dst_fetch_and_reload_price_table);
 
-	dst_on_securities_change(() => {
-		let fs = $("select#price-editor-filter-security");
-		let fsv = fs.val();
-		dst_fill_security_select($("select#price-editor-security, select#price-editor-filter-security")).then(() => {
-			fs.prepend($(document.createElement('option')).prop('value', '__all__').text('All securities'));
-			fs.val(fsv);
-			if(fs.val() === null) fs.val('__all__');
-		});
-	});
-
+	dst_on_securities_change(() => dst_fill_security_select($("select#price-editor-security, select#price-editor-filter-security")));
 	dst_fetch_and_reload_price_table();
 });

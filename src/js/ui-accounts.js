@@ -87,8 +87,8 @@ const dst_reset_acct_modal = function(modal) {
 const dst_fill_account_select = function(select) {
 	return dst_get_state('accounts').then(accounts => {
 		if(accounts === null) accounts = [];
-		select.empty();
-		accounts.forEach(a => select.append($(document.createElement('option')).prop('value', a.id).text(a.name).data('currency', a.currency)));
+		select.children('option.auto').remove();
+		accounts.forEach(a => select.append($(document.createElement('option')).addClass('auto').prop('value', a.id).text(a.name).data('currency', a.currency)));
 	});
 };
 
