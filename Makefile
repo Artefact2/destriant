@@ -1,5 +1,10 @@
 all: public/index.xhtml public/destriant.js public/destriant.css fetch-ext
 
+public/index.html: src/xhtml/main.html $(shell find src/xhtml -name "*.xhtml")
+	head -n-2 $< > $@
+	cat src/xhtml/*.xhtml >> $@
+	echo "</body></html>" >> $@
+
 public/index.xhtml: public/index.html
 	echo '<?xml version="1.0" encoding="utf-8"?>' > $@
 	tail -n+2 $< >> $@

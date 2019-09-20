@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+	<head>
+		<title>Destriant: a stock portfolio overview tool</title>
+		<meta charset="utf-8" />
+		<link rel="stylesheet" href="ext/bootstrap.min.css" />
+		<link rel="stylesheet" href="destriant.css" />
+		<script src="ext/jquery.min.js" defer="defer"></script>
+		<script src="ext/bootstrap.bundle.min.js" defer="defer"></script>
+		<script src="ext/localforage.min.js" defer="defer"></script>
+		<script src="destriant.js" defer="defer"></script>
+	</head>
+	<body>
+		<nav class="navbar navbar-fixed-top navbar-expand-sm navbar-light bg-light p-1 pl-2 pr-2">
+			<a class="navbar-brand p-link" data-target="welcome" href="#"><img  style="height: 1.8em; margin: -0.6em 0 -0.2em 0;" alt="Destriant" src="destriant.svg" /><sup class="text-uppercase badge badge-danger">Devel</sup></a>
+			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarMainContent">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarMainContent">
+				<ul class="navbar-nav navbar-left">
+					<li class="navbar-item"><a class="nav-link p-link" data-target="perf" href="#">Performance</a></li>
+					<li class="navbar-item"><a class="nav-link p-link" data-target="pf" href="#">Portfolio</a></li>
+					<li class="navbar-item"><a class="nav-link p-link" data-target="pnl" href="#">P/L Analysis</a></li>
+				</ul>
+				<ul class="navbar-nav ml-auto">
+					<li id="navbarTools" class="nav-item dropdown">
+						<a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">Tools</a>
+						<div class="dropdown-menu dropdown-menu-right">
+							<a data-target="acct-editor" class="p-link dropdown-item" href="#">Accounts…</a>
+							<a data-target="security-editor" class="p-link dropdown-item" href="#">Securities…</a>
+							<a data-target="tx-editor" class="p-link dropdown-item" href="#">Transactions…</a>
+							<a data-target="price-editor" class="p-link dropdown-item" href="#">Prices…</a>
+							<div class="dropdown-divider"></div>
+							<a id="nav-save-pf" class="dropdown-item" href="#">Export portfolio…</a>
+							<a id="nav-load-pf" class="dropdown-item" href="#">Import portfolio…</a>
+							<a data-target="settings" class="p-link dropdown-item" href="#">Settings…</a>
+						</div>
+					</li>
+				</ul>
+				<form class="form-inline ml-2">
+					<select id="main-account-selector" class="form-control">
+						<option value="-1">All accounts, EUR 0.00</option>
+					</select>
+				</form>
+			</div>
+		</nav>
+		<p class="alert alert-primary" id="js-warning">
+			<strong>Destriant is now loading its scripts.</strong> If this seems slow, make sure that Javascript is enabled in your browser. (Destriant will not load scripts from any third party sites, or track you in any way.)
+		</p>
+		<div id="welcome" class="p container">
+			<div class="jumbotron mt-4">
+				<h1>Track your stock portfolio with style!</h1>
+				<p class="lead"><strong>Destriant</strong> <small>\'dɛs.tɹɪ.ənt\</small> is a stock portfolio overview tool that runs entirely in the browser.</p>
+				<p>Destriant is the spiritual successor of <a href="https://github.com/Artefact2/pfm">pfm</a>. It is libre, serverless and respects your personal data and privacy. Check out the <a href="https://gitlab.com/artefact2/destriant">source code</a>.</p>
+				<p>
+					<button class="btn btn-primary btn-lg" disabled="disabled">Load a demo portfolio</button>
+					<button class="btn btn-secondary btn-lg" id="welcome-import-pf">Import a portfolio</button>
+					or start inputting your accounts, securities and transactions in the “Tools” menu. <a href="https://gitlab.com/artefact2/destriant/tree/master/tools">Conversion scripts</a> are also available.
+				</p>
+				<hr />
+				<p class="alert alert-warning">
+					<strong>Destriant is experimental software. Some features are incomplete, or not implemented at all. Please <a href="https://gitlab.com/artefact2/destriant/issues/new">report issues or give feedback</a>.</strong>
+				</p>
+			</div>
+		</div>
+	</body>
+</html>

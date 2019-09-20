@@ -1,0 +1,37 @@
+<div class="modal fade" tabindex="-1" role="dialog" id="export-pf-modal">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h4 class="modal-title">Export portfolio</h4>
+			</div>
+			<div class="modal-content">
+				<p class="lead text-center"></p>
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-secondary" id="export-pf-modal-close">Close</button>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="modal fade" tabindex="-1" role="dialog" id="import-pf-modal">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<form>
+				<div class="modal-header">
+					<h4 class="modal-title">Import portfolio</h4>
+				</div>
+				<div class="modal-content">
+					<p class="alert alert-warning"><strong>Importing a portfolio will erase all your current data. Be careful!</strong></p>
+					<div class="form-group">
+						<label for="import-pf-file">Pick a file…</label>
+						<input type="file" id="import-pf-file" class="form-control-file" />
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" id="import-pf-modal-close">Cancel</button>
+					<button type="submit" class="btn btn-primary" id="import-pf-modal-import">Import</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>

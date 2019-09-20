@@ -1,0 +1,67 @@
+<div id="acct-editor" class="p container">
+	<h1 class="d-flex justify-content-between align-items-end">
+		<span>Accounts</span>
+		<button class="btn btn-primary" id="acct-editor-new-acct">New account</button>
+	</h1>
+	<table class="table table-striped">
+		<thead>
+			<tr>
+				<th scope="col">#</th>
+				<th scope="col">Name</th>
+				<th scope="col">Currency</th>
+				<th scope="col">Transaction fees</th>
+				<th scope="col" class="text-right">Actions</th>
+			</tr>
+		</thead>
+		<tbody></tbody>
+	</table>
+	<div class="modal fade" tabindex="-1" role="dialog" id="acct-editor-modal">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<form>
+					<div class="modal-header">
+						<h4 class="modal-title"></h4>
+					</div>
+					<div class="modal-content">
+						<div class="form-group">
+							<label for="acct-editor-acct-name">Account name</label>
+							<input type="text" class="form-control" id="acct-editor-acct-name" placeholder="eg Foo Bank #1234" required="required" />
+						</div>
+						<div class="form-group">
+							<label for="acct-editor-acct-ccy">Base currency</label>
+							<select class="form-control" id="acct-editor-acct-ccy" required="required"></select>
+						</div>
+						<div class="form-row">
+							<label class="col-12">Transaction fee pricing (for est. closing costs)</label>
+							<div class="form-group col-md-6">
+								<label for="acct-editor-fee-flat">Flat</label>
+								<div class="input-group">
+									<div class="input-group-prepend"><div class="input-group-text acct-editor-fee-currency"></div></div>
+									<input type="number" step="any" min="0" class="form-control" id="acct-editor-fee-flat" placeholder="eg 2.0" />
+								</div>
+							</div>
+							<div class="form-group col-md-6">
+								<label for="acct-editor-fee-percent">Percentage</label>
+								<div class="input-group">
+									<div class="input-group-prepend"><div class="input-group-text acct-editor-fee-currency"></div></div>
+									<input type="number" step="any" min="0" max="100" class="form-control" id="acct-editor-fee-percent" placeholder="eg 0.02" />
+								</div>
+							</div>
+							<div class="form-group col-md-6">
+								<label for="acct-editor-fee-pershare">Per share</label>
+								<div class="input-group">
+									<div class="input-group-prepend"><div class="input-group-text acct-editor-fee-currency"></div></div>
+									<input type="number" step="any" min="0" class="form-control" id="acct-editor-fee-pershare" placeholder="eg 0.004" />
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" id="acct-editor-modal-cancel">Cancel</button>
+						<button type="submit" class="btn btn-primary" id="acct-editor-modal-save">Save</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>

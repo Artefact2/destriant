@@ -1,0 +1,60 @@
+<div id="security-editor" class="p container">
+	<h1 class="d-flex justify-content-between align-items-end">
+		<span>Securities</span>
+		<button class="btn btn-primary" id="security-editor-new-security">New security</button>
+	</h1>
+	<table class="table table-striped">
+		<thead>
+			<tr>
+				<th scope="col">Ticker</th>
+				<th scope="col">Name</th>
+				<th scope="col">ISIN</th>
+				<th scope="col">Exchange</th>
+				<th scope="col">Currency</th>
+				<th scope="col" class="text-right">Actions</th>
+			</tr>
+		</thead>
+		<tbody></tbody>
+	</table>
+	<div class="modal fade" tabindex="-1" role="dialog" id="security-editor-modal">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<form>
+					<div class="modal-header">
+						<h4 class="modal-title"></h4>
+					</div>
+					<div class="modal-content">
+						<div class="form-group">
+							<label for="security-editor-name">Security name</label>
+							<input type="text" class="form-control" id="security-editor-name" placeholder="eg Air Liquide" required="required" />
+						</div>
+						<div class="form-row">
+							<div class="form-group col-md-6">
+								<label for="security-editor-ticker">Ticker / Mnemonic</label>
+								<input type="text" class="form-control" id="security-editor-ticker" placeholder="eg AI" required="required"  />
+							</div>
+							<div class="form-group col-md-6">
+								<label for="security-editor-isin">ISIN</label>
+								<input type="text" class="form-control" id="security-editor-isin" placeholder="eg FR0000120073" />
+							</div>
+						</div>
+						<div class="form-row">
+							<div class="form-group col-md-6">
+								<label for="security-editor-ccy">Currency</label>
+								<select class="form-control" id="security-editor-ccy" required="required"></select>
+							</div>
+							<div class="form-group col-md-6">
+								<label for="security-editor-exchange">Exchange</label>
+								<select class="form-control" id="security-editor-exchange" required="required"></select>
+							</div>
+						</div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" id="security-editor-modal-cancel">Cancel</button>
+						<button type="submit" class="btn btn-primary" id="security-editor-modal-save">Save</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</div>
