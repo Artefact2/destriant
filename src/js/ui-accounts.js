@@ -26,7 +26,7 @@ const dst_fetch_and_reload_account_list = function() {
 		$(document.createElement('td')).attr('colspan', 5).text('Loading account list…')
 	));
 
-	dst_get_state('accounts').then(dst_reload_account_list);
+	return dst_get_state('accounts').then(dst_reload_account_list);
 };
 
 const dst_reload_account_list = function(accounts) {
@@ -66,7 +66,7 @@ const dst_reload_account_list = function(accounts) {
 	if(select.children('option[value="' + sid + '"]').length) {
 		select.val(sid);
 	} else {
-		select.val(sid = -1);
+		select.val(sid = -1).change();
 	}
 
 	if(accounts.length > 0) return;
@@ -201,7 +201,24 @@ dst_on_load(function() {
 	});
 
 	dst_fill_currency_select($("select#acct-editor-acct-ccy"));
-	dst_fetch_and_reload_account_list();
-});
+	dst_fetch_and_reload_account_list().then(() => {
+		dst_get_state('settings').then(settings => {
+			let select = $("select#main-account-selector");
+			if(settings !== null && 'main-account' in settings && select.children("option[value='" + settings['main-account'] + "']").length === 1) {
+				select.val(settings['main-account']).change();
+			} else {
+				select.val("-1").change();
+			}
+			select.change(function() {
+				let v = parseInt($(this).val(), 10);
+				dst_get_state('settings').then(settings => {
+					if(settings === null) settings = {};
+					settings['main-account'] = v;
+					dst_set_state('settings', settings);
+				});
+			});
+		});
 
-dst_on_load_after(dst_trigger_accounts_change);
+		dst_trigger_accounts_change();
+	});
+});

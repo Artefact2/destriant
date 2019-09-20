@@ -42,7 +42,7 @@ dst_on_load(function() {
 	dst_get_state('accounts').then(function(accounts) {
 		if(accounts !== null && accounts.length !== 0) {
 			if(location.hash.length < 2 || location.hash === "#welcome") {
-				location.hash = "#perf";
+				location.hash = "#pf";
 			}
 		} else {
 			location.hash = "#welcome";

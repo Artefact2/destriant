@@ -55,6 +55,7 @@ dst_on_load(function() {
 			'securities',
 			'transactions',
 			'prices',
+			'settings',
 		]).then(pf => {
 			pf['destriant-version'] = 1;
 			let b = new Blob([ JSON.stringify(pf) ], { type: 'application/json' });

@@ -36,7 +36,7 @@ const dst_fetch_and_reload_securities_list = function() {
 		$(document.createElement('td')).attr('colspan', 6).text('Loading securities list…')
 	));
 
-	dst_get_state('securities').then(dst_reload_securities_list);
+	return dst_get_state('securities').then(dst_reload_securities_list);
 };
 
 const dst_reload_securities_list = function(securities) {
@@ -193,7 +193,5 @@ dst_on_load(function() {
 
 	dst_fill_currency_select($("select#security-editor-ccy"));
 	dst_fill_exchange_select($("select#security-editor-exchange"));
-	dst_fetch_and_reload_securities_list();
+	dst_fetch_and_reload_securities_list().then(dst_trigger_securities_change);
 });
-
-dst_on_load_after(dst_trigger_securities_change);

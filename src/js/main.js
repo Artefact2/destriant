@@ -15,16 +15,18 @@
 
 "use strict";
 
-let dst_on_load_funcs = [];
-let dst_on_load_after_funcs = [];
-const dst_on_load = f => dst_on_load_funcs.push(f);
-const dst_on_load_after = f => dst_on_load_after_funcs.push(f);
+const dst_on_load = f => $(f);
 
 const dst_format_fixed_amount = function(amount, decimals) {
 	let rounded = amount.toFixed(decimals);
 
 	if(Math.abs(parseFloat(rounded) - amount) < 1e-6) {
-		return $(document.createTextNode(rounded));
+		return $(document.createTextNode(amount.toLocaleString('en-GB', {
+			style: 'decimal',
+			useGrouping: true,
+			minimumFractionDigits: decimals,
+			maximumFractionDigits: decimals,
+		})));
 	}
 
 	return $(document.createElement('abbr')).prop('title', amount.toFixed(6)).text(rounded);
@@ -40,7 +42,10 @@ const dst_format_currency_amount = function(ccy, amount) {
 	}
 	/* https://stackoverflow.com/questions/149055/how-can-i-format-numbers-as-currency-string-in-javascript */
 	/* XXX */
-	ret = span.text(amount.toLocaleString('en-GB', { style: 'currency', currency: ccy }));
+	ret = span.text(amount.toLocaleString('en-GB', {
+		style: 'currency',
+		currency: ccy,
+	}));
 
 	if(Math.abs(parseFloat(amount.toFixed(2)) - amount) >= 1e-6) {
 		ret = $(document.createElement('abbr')).prop('title', amount.toFixed(6)).append(span);
@@ -49,8 +54,4 @@ const dst_format_currency_amount = function(ccy, amount) {
 	return ret;
 };
 
-$(function() {
-	$("p#js-warning").remove();
-	dst_on_load_funcs.forEach(f => f());
-	dst_on_load_after_funcs.forEach(f => f());
-});
+dst_on_load(() => $("p#js-warning").remove());

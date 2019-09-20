@@ -28,7 +28,6 @@ const dst_regen_pf_table = (state, pf) => {
 				$(document.createElement('strong')).text(tkr),
 				', ', state.securities[tkr].name
 			),
-			$(document.createElement('td')).text(state.securities[tkr].currency),
 			$(document.createElement('td')).addClass('text-right').append(dst_format_fixed_amount(s.quantity, 4)),
 			$(document.createElement('td')).addClass('text-right').append(dst_format_currency_amount(state.securities[tkr].currency, s.basis / s.quantity)),
 			$(document.createElement('td')), /* XXX */
@@ -43,4 +42,12 @@ const dst_regen_pf_table = (state, pf) => {
 	$("th#pf-total-exposure-percent").text('100.00%');
 };
 
-dst_on_load(() => dst_get_states([ 'securities', 'transactions' ]).then(state => dst_regen_pf_table(state, dst_pf(state, {}))));
+dst_on_load(() => {
+	$("select#main-account-selector").change(function() {
+		let v = parseInt($(this).val(), 10);
+		dst_get_states([ 'securities', 'transactions' ]).then(state => {
+			let pf = dst_pf(state, { accounts: v === -1 ? null : [ v ] });
+			dst_regen_pf_table(state, pf);
+		});
+	});
+});
