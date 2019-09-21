@@ -19,7 +19,7 @@ public/destriant.js: src/js/main.js $(shell find src/js -name "*.js" -not -name 
 public/destriant.css: src/scss/main.scss $(shell find src/scss -name "*.scss" -not -name "main.scss")
 	cat $^ | sassc -s -t compressed $@
 
-fetch-ext: public/ext/bootstrap.min.css public/ext/bootstrap.bundle.min.js public/ext/bootstrap.bundle.min.js.map public/ext/jquery.min.js public/ext/localforage.min.js
+fetch-ext: public/ext/bootstrap.min.css public/ext/bootstrap.bundle.min.js public/ext/bootstrap.bundle.min.js.map public/ext/jquery.min.js public/ext/localforage.min.js public/ext/d3.v5.min.js public/ext/c3.min.js public/ext/c3.min.css
 
 public/ext:
 	mkdir $@
@@ -41,6 +41,18 @@ public/ext/jquery.min.js:
 public/ext/localforage.min.js:
 	make public/ext
 	wget -O $@ "https://raw.githubusercontent.com/localForage/localForage/1.7.3/dist/localforage.min.js"
+
+public/ext/d3.v5.min.js:
+	make public/ext
+	wget -O $@ "https://d3js.org/d3.v5.min.js"
+
+public/ext/c3.min.js:
+	make public/ext
+	wget -O $@ "https://raw.githubusercontent.com/c3js/c3/v0.7.8/c3.min.js"
+
+public/ext/c3.min.css:
+	make public/ext
+	wget -O $@ "https://raw.githubusercontent.com/c3js/c3/v0.7.8/c3.min.css"
 
 host:
 	xdg-open 'http://[::1]:24493' &

@@ -23,6 +23,22 @@
 			</form>
 		</div>
 	</header>
+	<div class="row mt-4">
+		<div class="col-lg-6">
+			<div class="d-flex border-bottom border-secondary">
+				<h6 class="mb-1">P/L, EUR</h6>
+				<div class="pf-total-pnl ml-auto"></div>
+			</div>
+			<div id="pf-pnl-graph"></div>
+		</div>
+		<div class="col-lg-6">
+			<div class="d-flex border-bottom border-secondary">
+				<h6 class="mb-1">Absolute exposure, EUR</h6>
+				<div class="pf-total-exposure ml-auto"></div>
+			</div>
+			<div id="pf-exposure-graph"></div>
+		</div>
+	</div>
 	<table class="table table-sm table-striped mt-4">
 		<thead>
 			<tr>
@@ -40,8 +56,8 @@
 		<tfoot>
 			<tr>
 				<th colspan="6">Totals</th>
-				<th id="pf-total-pnl" class="text-right"></th>
-				<th id="pf-total-exposure" class="text-right"></th>
+				<th class="pf-total-pnl text-right"></th>
+				<th class="pf-total-exposure text-right"></th>
 				<th id="pf-total-exposure-percent" class="text-right"></th>
 			</tr>
 		</tfoot>

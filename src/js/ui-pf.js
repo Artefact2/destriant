@@ -56,13 +56,95 @@ const dst_regen_pf_table = (state, pf) => {
 	}
 
 	$("th#pf-total-exposure-percent").text('100.00%');
-	$("th#pf-total-exposure, h4#pf-positions-value").empty().append(dst_format_currency_amount('EUR', pf.total.basis + pf.total.unrealized - pf.total.cash.basis)); /* XXX */
-	$("th#pf-total-pnl").empty().append(dst_format_currency_gain('EUR', pf.total.realized + pf.total.unrealized)); /* XXX */
+	$(".pf-total-exposure, h4#pf-positions-value").empty().append(dst_format_currency_amount('EUR', pf.total.basis + pf.total.unrealized - pf.total.cash.basis)); /* XXX */
+	$(".pf-total-pnl").empty().append(dst_format_currency_gain('EUR', pf.total.realized + pf.total.unrealized)); /* XXX */
 	$("h4#pf-cash-available").empty().append(dst_format_currency_amount('EUR', pf.total.cash.basis)); /* XXX */
 	$("h4#pf-account-value").empty().append(dst_format_currency_amount('EUR', pf.total.basis + pf.total.unrealized)); /* XXX */
 	if(pf.total.stale) {
 		$("th#pf-total-exposure, th#pf-total-pnl, h4#pf-positions-value, h4#pf-account-value").find('span.currency-amount').addClass('stale');
 	}
+
+	/* XXX: don't regen graphs every time, just update the data? */
+	let profits = [ 'profits' ];
+	let losses = [ 'losses' ];
+	let exp = [ 'exposure' ];
+	let names = [];
+	for(let t in pf.total.securities) {
+		if(Math.abs(pf.total.securities[t].quantity) < 1e-6) continue;
+		let pnl = pf.total.securities[t].realized + pf.total.securities[t].unrealized;
+		if(pnl >= 0) {
+			profits.push(pnl);
+			losses.push(0);
+		} else {
+			profits.push(0);
+			losses.push(pnl);
+		}
+		exp.push(pf.total.securities[t].basis + pf.total.securities[t].unrealized);
+		names.push(state.securities[t].name);
+	}
+
+	let chart = c3.generate({
+		interaction: { enabled: false },
+		bindto: '#pf-pnl-graph',
+		size: {
+			height: Math.min(500, (names.length + 1) * 30)
+		},
+		bar: {
+			width: { ratio: .5 },
+		},
+		data: {
+			columns: [ profits, losses ],
+			type: 'bar',
+			groups: [ [ 'profits', 'losses' ] ],
+			colors: {
+				profits: 'hsla(140, 100%, 60%, .8)',
+				losses: 'hsla(20, 100%, 60%, .8)',
+			},
+		},
+		axis: {
+			rotated: true,
+			x: {
+				type: 'category',
+				categories: names,
+				tick: { multiline: false },
+			}
+		},
+		legend: { show: false },
+		grid: {
+			x: { show: true },
+			y: { show: true },
+		},
+	});
+	let chart2 = c3.generate({
+		interaction: { enabled: false },
+		bindto: '#pf-exposure-graph',
+		size: {
+			height: Math.min(500, (names.length + 1) * 30)
+		},
+		bar: {
+			width: { ratio: .5 },
+		},
+		data: {
+			columns: [ exp ],
+			type: 'bar',
+			colors: {
+				'exposure': 'hsla(200, 100%, 60%, .8)',
+			},
+		},
+		axis: {
+			rotated: true,
+			x: {
+				type: 'category',
+				categories: names,
+				tick: { multiline: false },
+			}
+		},
+		legend: { show: false },
+		grid: {
+			x: { show: true },
+			y: { show: true },
+		},
+	});
 };
 
 dst_on_load(() => {

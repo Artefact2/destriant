@@ -29,3 +29,14 @@ abbr.rounded-figure {
 	text-decoration: underline dotted;
 	text-decoration-color: hsla(0, 0%, 100%, 0.5);
 }
+
+.c3-axis text {
+	fill: #999;
+}
+
+.c3-axis, .c3-grid {
+	path, line {
+		stroke: hsla(0, 0%, 30%, .5);
+		stroke-dasharray: 1 0;
+	}
+}
