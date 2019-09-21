@@ -14,7 +14,11 @@
 		</div>
 		<div>
 			<small class="text-muted">Day change</small>
-			<h4 id="pf-day-change">?</h4>
+			<h4 id="pf-day-change"></h4>
+		</div>
+		<div>
+			<small class="text-muted">% Day change</small>
+			<h4 id="pf-day-change-percentage"></h4>
 		</div>
 		<div>
 			<form class="form-inline" id="pf-date-select">
@@ -55,10 +59,16 @@
 		</thead>
 		<tfoot>
 			<tr>
+				<th colspan="6">Closed positions</th>
+				<td id="pf-total-pnl-closed" class="text-right"></td>
+				<td id="pf-total-exposure-closed" class="text-right"></td>
+				<td id="pf-total-exposure-percent-closed" class="text-right"></td>
+			</tr>
+			<tr>
 				<th colspan="6">Totals</th>
-				<th class="pf-total-pnl text-right"></th>
-				<th class="pf-total-exposure text-right"></th>
-				<th id="pf-total-exposure-percent" class="text-right"></th>
+				<td class="pf-total-pnl text-right"></td>
+				<td class="pf-total-exposure text-right"></td>
+				<td id="pf-total-exposure-percent" class="text-right"></td>
 			</tr>
 		</tfoot>
 		<tbody>

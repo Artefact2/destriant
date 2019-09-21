@@ -18,9 +18,9 @@
 /**
   * @param state { transactions: … }
   * @param filters { before: 'Y-m-d' or null, accounts: [ id, id… ] or null, tickers: [ ticker, ticker… ] or null }
-  * @returns ?
+  * @param dates generator of dates (Y-m-d)
   */
-const dst_pf = (state, filters) => {
+const dst_pf = function*(state, filters, dates) {
 	let pf = {
 		total: {
 			basis: 0.0,
@@ -31,7 +31,6 @@ const dst_pf = (state, filters) => {
 		accounts: {},
 	};
 
-	/* XXX: unrealized gain? */
 	/* XXX: multi-currency shenanigans */
 
 	// if(state.securities === null) state.securities = {};
@@ -48,16 +47,31 @@ const dst_pf = (state, filters) => {
 	if(filters.accounts !== null) filters.accounts.forEach(id => accounts[id] = true);
 	if(filters.tickers !== null) filters.tickers.forEach(tkr => tickers[tkr] = true);
 
-	for(let i in state.transactions) {
-		let tx = state.transactions[i];
-		if(filters.before !== null && tx.date > filters.before) break;
-		if(filters.accounts !== null && !(tx.account in accounts)) continue;
-		if(filters.tickers !== null && !(tx.ticker in tickers)) continue;
-		dst_pf_apply_tx(state, pf, tx);
-	}
+	let i = 0, imax = state.transactions.length;
+	for(let date of dates) {
+		while(i < imax) {
+			let tx = state.transactions[i];
+			if(filters.before !== null && tx.date > filters.before) break;
+			if(filters.accounts !== null && !(tx.account in accounts)) {
+				++i;
+				continue;
+			}
+			if(filters.tickers !== null && !(tx.ticker in tickers)) {
+				++i;
+				continue;
+			}
+			if(tx.date > date) break;
 
-	dst_pf_compute_realized(state, pf, filters.before);
-	return pf;
+			dst_pf_apply_tx(state, pf, tx);
+			++i;
+		}
+
+		if(i === imax || state.transactions[i].date > date) {
+			dst_pf_compute_realized(state, pf, date);
+			yield $.extend(true, {}, pf); /* XXX: deep copy is meh */
+			continue;
+		}
+	}
 };
 
 const dst_pf_apply_tx = (state, pf, tx) => {
@@ -230,4 +244,38 @@ const dst_pf_compute_realized = (state, pf, date) => {
 			a.unrealized += s.unrealized;
 		}
 	}
+};
+
+/* XXX: maybe refactor with dst_pf_compute_realized */
+const dst_two_consecutive_days_gen = function*(date) {
+	let d = date === null ? new Date() : new Date(date);
+	switch(d.getDay()) {
+	case 6: /* saturday */
+		d.setDate(d.getDate() - 2);
+		yield d.toISOString().split('T')[0];
+		d.setDate(d.getDate() + 1);
+		yield d.toISOString().split('T')[0];
+		break;
+
+	case 0: /* sunday */
+		d.setDate(d.getDate() - 3);
+		yield d.toISOString().split('T')[0];
+		d.setDate(d.getDate() + 1);
+		yield d.toISOString().split('T')[0];
+		break;
+
+	case 1: /* monday */
+		d.setDate(d.getDate() - 3);
+		yield d.toISOString().split('T')[0];
+		d.setDate(d.getDate() + 3);
+		yield d.toISOString().split('T')[0];
+		break;
+
+	default:
+		d.setDate(d.getDate() - 1);
+		yield d.toISOString().split('T')[0];
+		d.setDate(d.getDate() + 1);
+		yield d.toISOString().split('T')[0];
+		break;
+	};
 };
