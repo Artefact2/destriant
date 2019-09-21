@@ -15,7 +15,7 @@
 
 "use strict";
 
-const dst_fetch_and_regen_pf_table = () => dst_get_states([ 'securities', 'transactions', 'prices' ]).then(state => {
+const dst_fetch_and_regen_pf_table = () => dst_get_states([ 'accounts', 'securities', 'transactions', 'prices' ]).then(state => {
 	let v = parseInt($("select#main-account-selector").val(), 10);
 	let before = $("input#pf-date-select-date").val();
 	let pfgen = dst_pf(state, {

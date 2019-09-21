@@ -33,8 +33,8 @@ const dst_pf = function*(state, filters, dates) {
 
 	/* XXX: multi-currency shenanigans */
 
-	// if(state.securities === null) state.securities = {};
-	// if(state.accounts === null) state.accounts = [];
+	if(state.securities === null) state.securities = {};
+	if(state.accounts === null) state.accounts = [];
 	if(state.transactions === null) state.transactions = [];
 	if(state.prices === null) state.prices = {};
 
@@ -222,12 +222,15 @@ const dst_pf_compute_realized = (state, pf, date) => {
 			}
 		}
 
-		s.unrealized = s.quantity * s.ltp - s.basis; /* XXX: closing costs */
+		s.unrealized = s.quantity * s.ltp - s.basis;
 		pf.total.unrealized += s.unrealized;
 	}
 
+	let accountmap = {};
+	state.accounts.forEach(a => accountmap[a.id] = a);
 	for(let accountid in pf.accounts) {
 		let a = pf.accounts[accountid];
+		let fees = accountmap[accountid].fees;
 		a.unrealized = 0.0;
 
 		for(let t in a.securities) {
@@ -240,8 +243,11 @@ const dst_pf_compute_realized = (state, pf, date) => {
 			s.ltp = pf.total.securities[t].ltp;
 			s.stale = pf.total.securities[t].stale;
 			if(s.stale) a.stale = true;
-			s.unrealized = s.quantity * s.ltp - s.basis;
+			let cc = fees[0] + fees[1] * s.quantity * s.ltp * .01 + fees[2] * s.quantity;
+			s.unrealized = s.quantity * s.ltp - s.basis - cc;
 			a.unrealized += s.unrealized;
+			pf.total.securities[t].unrealized -= cc;
+			pf.total.unrealized -= cc;
 		}
 	}
 };
