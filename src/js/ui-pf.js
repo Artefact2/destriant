@@ -15,39 +15,58 @@
 
 "use strict";
 
+const dst_fetch_and_regen_pf_table = () => dst_get_states([ 'securities', 'transactions', 'prices' ]).then(state => {
+	let v = parseInt($("select#main-account-selector").val(), 10);
+	let pf = dst_pf(state, {
+		accounts: v === -1 ? null : [ v ],
+		before: $("input#pf-date-select-date").val(),
+	});
+	dst_regen_pf_table(state, pf);
+});
+
 const dst_regen_pf_table = (state, pf) => {
 	let tbody = $("div#pf tbody");
 	tbody.empty();
 
-	for(let tkr in pf.securities) {
-		let s = pf.securities[tkr];
+	for(let tkr in pf.total.securities) {
+		let s = pf.total.securities[tkr]
+		let tr;
 		if(Math.abs(s.quantity) < 1e-6) continue;
 
-		tbody.append($(document.createElement('tr')).append(
+		tbody.append(tr = $(document.createElement('tr')).append(
 			$(document.createElement('td')).append(
 				$(document.createElement('strong')).text(tkr),
 				', ', state.securities[tkr].name
 			),
-			$(document.createElement('td')).addClass('text-right').append(dst_format_fixed_amount(s.quantity, 4)),
-			$(document.createElement('td')).addClass('text-right').append(dst_format_currency_amount(state.securities[tkr].currency, s.basis / s.quantity)),
-			$(document.createElement('td')), /* XXX */
-			$(document.createElement('td')),
-			$(document.createElement('td')),
-			$(document.createElement('td')),
-			$(document.createElement('td')),
-			$(document.createElement('td'))
+			$(document.createElement('td')).append(dst_format_fixed_amount(s.quantity, 4)),
+			$(document.createElement('td')).append(dst_format_currency_amount(state.securities[tkr].currency, s.basis / s.quantity)),
+			$(document.createElement('td')).append(dst_format_currency_amount(state.securities[tkr].currency, s.ltp)),
+			$(document.createElement('td')).append(dst_format_percentage_gain(s.ltp / (s.basis / s.quantity))),
+			$(document.createElement('td')).text('?'), /* XXX */
+			$(document.createElement('td')).append(dst_format_currency_gain(state.securities[tkr].currency, s.realized + s.unrealized)),
+			$(document.createElement('td')).append(dst_format_currency_amount(state.securities[tkr].currency, s.basis + s.unrealized)),
+			$(document.createElement('td')).append((100.0 * (s.basis + s.unrealized) / (pf.total.basis + pf.total.unrealized - pf.total.cash.basis)).toFixed(2) + '%')
 		));
+
+		tr.children('td').slice(1).addClass('text-right');
+
+		if(s.stale) {
+			tr.find('span.currency-amount').slice(1).addClass('stale');
+		}
 	}
 
 	$("th#pf-total-exposure-percent").text('100.00%');
+	$("th#pf-total-exposure, h4#pf-positions-value").empty().append(dst_format_currency_amount('EUR', pf.total.basis + pf.total.unrealized - pf.total.cash.basis)); /* XXX */
+	$("th#pf-total-pnl").empty().append(dst_format_currency_gain('EUR', pf.total.realized + pf.total.unrealized)); /* XXX */
+	$("h4#pf-cash-available").empty().append(dst_format_currency_amount('EUR', pf.total.cash.basis)); /* XXX */
+	$("h4#pf-account-value").empty().append(dst_format_currency_amount('EUR', pf.total.basis + pf.total.unrealized)); /* XXX */
+	if(pf.total.stale) {
+		$("th#pf-total-exposure, th#pf-total-pnl, h4#pf-positions-value, h4#pf-account-value").find('span.currency-amount').addClass('stale');
+	}
 };
 
 dst_on_load(() => {
-	$("select#main-account-selector").change(function() {
-		let v = parseInt($(this).val(), 10);
-		dst_get_states([ 'securities', 'transactions' ]).then(state => {
-			let pf = dst_pf(state, { accounts: v === -1 ? null : [ v ] });
-			dst_regen_pf_table(state, pf);
-		});
-	});
+	$("select#main-account-selector").change(dst_fetch_and_regen_pf_table);
+	$("form#pf-date-select").submit(dst_fetch_and_regen_pf_table);
+	$("input#pf-date-select-date").val(new Date().toISOString().split('T')[0]);
 });

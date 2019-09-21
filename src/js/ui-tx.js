@@ -53,7 +53,12 @@ const dst_reload_tx_list = function(txs) {
 
 		txs.forEach(tx => {
 			if(faccount !== null && faccount !== "__all__" && tx.account !== faccount) return;
-			if(fsecurity !== null && fsecurity !== "__all__" && fsecurity !== tx.ticker) return;
+			if(fsecurity !== null && fsecurity !== "__all__") {
+				if(fsecurity === "__cash__" && tx.type !== 'cash') return;
+				if(fsecurity === "__split__" && tx.type !== 'split') return;
+				if(fsecurity === "__sec__" && tx.type !== 'security') return;
+				if(fsecurity !== "__sec__" && fsecurity !== "__cash__" && fsecurity !== "__split__" && fsecurity !== tx.ticker) return;
+			}
 			if(fbefore !== "" && fbefore < tx.date) return;
 			if(fafter !== "" && fafter > tx.date) return;
 

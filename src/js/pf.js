@@ -22,9 +22,13 @@
   */
 const dst_pf = (state, filters) => {
 	let pf = {
-		total: { basis: 0.0, realized: 0.0 },
-		cash: { basis: 0.0, realized: 0.0 },
-		securities: {},
+		total: {
+			basis: 0.0,
+			realized: 0.0,
+			cash: { basis: 0.0, realized: 0.0 },
+			securities: {},
+		},
+		accounts: {},
 	};
 
 	/* XXX: unrealized gain? */
@@ -33,7 +37,7 @@ const dst_pf = (state, filters) => {
 	// if(state.securities === null) state.securities = {};
 	// if(state.accounts === null) state.accounts = [];
 	if(state.transactions === null) state.transactions = [];
-	// if(state.prices === null) state.prices = {};
+	if(state.prices === null) state.prices = {};
 
 	if(!('before' in filters)) filters.before = null;
 	if(!('accounts' in filters)) filters.accounts = null;
@@ -52,63 +56,178 @@ const dst_pf = (state, filters) => {
 		dst_pf_apply_tx(state, pf, tx);
 	}
 
+	dst_pf_compute_realized(state, pf, filters.before);
 	return pf;
 };
 
 const dst_pf_apply_tx = (state, pf, tx) => {
 	if(tx.type === 'split') {
-		if(!(tx.ticker in pf.securities)) return;
-		pf.securities[tx.ticker].quantity *= tx.after;
-		pf.securities[tx.ticker].quantity /= tx.before;
+		if(!(tx.ticker in pf.total.securities)) return;
+		pf.total.securities[tx.ticker].quantity *= tx.after;
+		pf.total.securities[tx.ticker].quantity /= tx.before;
+		for(let a in pf.accounts) {
+			if(!(tx.ticker in pf.accounts[a].securities)) continue;
+			pf.accounts[a].securities[tx.ticker].quantity *= tx.after;
+			pf.accounts[a].securities[tx.ticker].quantity /= tx.before;
+		}
 		return;
 	}
+
+
+	if(!(tx.account in pf.accounts)) {
+		pf.accounts[tx.account] = {
+			basis: 0.0,
+			realized: 0.0,
+			cash: { basis: 0.0, realized: 0.0 },
+			securities: {},
+		};
+	}
+	let a = pf.accounts[tx.account];
+
 	if(tx.type === 'cash') {
 		pf.total.realized -= tx.fee;
-		pf.cash.realized -= tx.fee;
-		pf.total.basis += tx.amount - tx.fee;
-		pf.cash.basis += tx.amount - tx.fee;
+		a.realized -= tx.fee;
+		pf.total.cash.realized -= tx.fee;
+		a.cash.realized -= tx.fee;
+		pf.total.basis += tx.quantity - tx.fee;
+		a.basis += tx.quantity - tx.fee;
+		pf.total.cash.basis += tx.quantity - tx.fee;
+		a.cash.basis += tx.quantity - tx.fee;
 		return;
 	}
 
 	console.assert(tx.type === 'security');
-	if(!(tx.ticker in pf.securities)) {
-		pf.securities[tx.ticker] = { quantity: 0.0, basis: 0.0, realized: 0.0 };
+	if(!(tx.ticker in pf.total.securities)) {
+		pf.total.securities[tx.ticker] = { quantity: 0.0, basis: 0.0, realized: 0.0 };
+	}
+	if(!(tx.ticker in a.securities)) {
+		a.securities[tx.ticker] = { quantity: 0.0, basis: 0.0, realized: 0.0 };
 	}
 
-	let s = pf.securities[tx.ticker];
-	s.realized -= tx.fee;
+	let ts = pf.total.securities[tx.ticker];
+	let as = a.securities[tx.ticker];
 	pf.total.realized -= tx.fee;
+	a.realized -= tx.fee;
+	ts.realized -= tx.fee;
+	as.realized -= tx.fee;
+	pf.total.cash.basis -= tx.fee;
+	pf.total.basis -= tx.fee;
+	a.cash.basis -= tx.fee;
+	a.basis -= tx.fee;
 
-	if(Math.abs(s.quantity) < 1e-9 || s.quantity * tx.quantity >= 0) {
+	if(Math.abs(as.quantity) < 1e-9 || as.quantity * tx.quantity >= 0) {
 		/* Opening long/short position */
-		s.quantity += tx.quantity;
-		pf.total.basis += tx.quantity * tx.price;
-		s.basis += tx.quantity * tx.price;
+		ts.quantity += tx.quantity;
+		as.quantity += tx.quantity;
+		pf.total.cash.basis -= tx.quantity * tx.price;
+		a.cash.basis -= tx.quantity * tx.price;
+		ts.basis += tx.quantity * tx.price;
+		as.basis += tx.quantity * tx.price;
+		ts.ltp = tx.price;
 		return;
 	}
 
 	/* Closing long/short position */
 	let q;
-	if((s.quantity + tx.quantity) * s.quantity >= 0) {
+	if((as.quantity + tx.quantity) * as.quantity >= 0) {
 		/* Complete or partial close */
 		q = tx.quantity;
 	} else {
 		/* Complete close + opening an opposite position */
 		/* eg: buy 10, sell 20 */
-		q = -s.quantity;
+		q = -as.quantity;
 	}
 
 	/* Close position */
-	pf.total.realized += -q * (tx.price - s.basis / s.quantity);
-	s.realized += -q * (tx.price - s.basis / s.quantity);
-	pf.total.basis += q * (s.basis / s.quantity);
-	s.basis += q * (s.basis / s.quantity);
+	let realized = -q * (tx.price - as.basis / as.quantity);
+	let out = -q * (as.basis / as.quantity);
+	pf.total.realized += realized;
+	a.realized += realized;
+	ts.realized += realized;
+	as.realized += realized;
 
-	s.quantity += tx.quantity;
-	tx.quantity -= q;
+	pf.total.basis -= out;
+	a.basis -= out;
+	ts.basis -= out;
+	as.basis -= out;
+
+	pf.total.cash.basis += realized + out;
+	pf.total.basis += realized + out;
+	a.cash.basis += realized + out;
+	a.basis += realized + out;
+
+	ts.quantity += tx.quantity;
+	as.quantity += tx.quantity;
+	q = tx.quantity - q;
 
 	/* Maybe reopen position */
-	s.quantity += tx.quantity;
-	pf.total.basis += tx.quantity * tx.price;
-	s.basis += tx.quantity * tx.price;
+	ts.quantity += q;
+	as.quantity += q;
+	pf.total.cash.basis -= q * tx.price;
+	a.cash.basis -= q * tx.price;
+	ts.basis += q * tx.price;
+	as.basis += q * tx.price;
+	ts.ltp = tx.price;
+};
+
+const dst_pf_compute_realized = (state, pf, date) => {
+	let d = date === null ? new Date() : new Date(date);
+	let day = d.getDay();
+	/* XXX: not every week day is tradeable, this is also exchange dependent */
+	if(day === 6) d.setDate(d.getDate() - 1); /* saturday */
+	else if(day === 0) d.setDate(d.getDate() - 2); /* sunday */
+	date = d.toISOString().split('T')[0];
+
+	pf.total.unrealized = 0.0;
+	let pricemap = {};
+	for(let t in pf.total.securities) {
+		let s = pf.total.securities[t];
+
+		if(Math.abs(s.quantity) < 1e-6) {
+			/* XXX: edge case, we still need a price if account A is long X, and account B is short X */
+			s.unrealized = 0.0;
+			continue;
+		}
+
+		if(t in state.prices && date in state.prices[t]) {
+			s.ltp = state.prices[t][date];
+			s.stale = false;
+		} else {
+			s.stale = true;
+			pf.total.stale = true;
+			if(state.prices !== null && t in state.prices) {
+				for(let i = 0; i < 4; ++i) { /* XXX */
+					d.setDate(d.getDate() - 1);
+					date = d.toISOString().split('T')[0];
+
+					if(date in state.prices[t]) {
+						s.ltp = state.prices[t][date];
+						break;
+					}
+				}
+			}
+		}
+
+		s.unrealized = s.quantity * s.ltp - s.basis; /* XXX: closing costs */
+		pf.total.unrealized += s.unrealized;
+	}
+
+	for(let accountid in pf.accounts) {
+		let a = pf.accounts[accountid];
+		a.unrealized = 0.0;
+
+		for(let t in a.securities) {
+			let s = a.securities[t];
+			if(Math.abs(s.quantity) < 1e-6) {
+				s.unrealized = 0.0;
+				continue;
+			}
+
+			s.ltp = pf.total.securities[t].ltp;
+			s.stale = pf.total.securities[t].stale;
+			if(s.stale) a.stale = true;
+			s.unrealized = s.quantity * s.ltp - s.basis;
+			a.unrealized += s.unrealized;
+		}
+	}
 };

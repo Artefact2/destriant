@@ -59,7 +59,7 @@ const dst_reload_account_list = function(accounts) {
 
 		let option = $(document.createElement('option'));
 		option.prop('value', a.id);
-		option.text(a.name + ', EUR 0.00'); /* XXX */
+		option.text(a.name); /* XXX */
 		select.append(option);
 	}
 

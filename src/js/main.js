@@ -33,25 +33,46 @@ const dst_format_fixed_amount = function(amount, decimals) {
 };
 
 const dst_format_currency_amount = function(ccy, amount) {
-	let ret;
 	let span = $(document.createElement('span')).addClass('currency-amount');
+
 	if(amount > 0) span.addClass('currency-amount-positive');
 	else if(amount < 0) {
 		span.addClass('currency-amount-negative');
 		amount = -amount;
 	}
-	/* https://stackoverflow.com/questions/149055/how-can-i-format-numbers-as-currency-string-in-javascript */
-	/* XXX */
-	ret = span.text(amount.toLocaleString('en-GB', {
+
+	let txt = amount.toLocaleString('en-GB', {
 		style: 'currency',
 		currency: ccy,
-	}));
+	});
 
 	if(Math.abs(parseFloat(amount.toFixed(2)) - amount) >= 1e-6) {
-		ret = $(document.createElement('abbr')).prop('title', amount.toFixed(6)).append(span);
+		span.append($(document.createElement('abbr')).addClass('rounded-figure').prop('title', amount.toFixed(6)).text(txt));
+	} else {
+		span.text(txt);
 	}
 
-	return ret;
+	return span;
+};
+
+const dst_format_currency_gain = (ccy, amount) => {
+	let r = dst_format_currency_amount(ccy, amount);
+	if(amount > 0) r.addClass('currency-gain');
+	else if(amount < 0) r.addClass('currency-loss');
+	return r;
+};
+
+const dst_format_percentage = pc => {
+	let sp = $(document.createElement('span')).addClass('currency-amount');
+	if(pc > 1.0) sp.addClass('currency-amount-positive');
+	else if(pc < 1.0) sp.addClass('currency-amount-negative');
+	return sp.text((100.0 * pc - 100.0).toFixed(2) + '%');
+};
+const dst_format_percentage_gain = pc => {
+	let sp = dst_format_percentage(pc);
+	if(pc > 1.0) sp.addClass('currency-gain');
+	else if(pc < 1.0) sp.addClass('currency-loss');
+	return sp;
 };
 
 dst_on_load(() => $("p#js-warning").remove());

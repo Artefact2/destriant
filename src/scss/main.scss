@@ -15,3 +15,17 @@ span.currency-amount.currency-amount-negative {
 	&:before { content: '('; }
 	&:after { content: ')'; }
 }
+
+span.currency-amount {
+	&.currency-gain { color: hsl(140, 100%, 60%); }
+	&.currency-loss { color: hsl(20, 100%, 60%); }
+	&.stale {
+		&:after { content: '?'; }
+		&.currency-amount-negative:after { content: '?)'; }
+	}
+}
+
+abbr.rounded-figure {
+	text-decoration: underline dotted;
+	text-decoration-color: hsla(0, 0%, 100%, 0.5);
+}

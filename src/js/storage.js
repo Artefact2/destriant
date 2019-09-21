@@ -60,7 +60,7 @@ dst_on_load(function() {
 			pf['destriant-version'] = 1;
 			let b = new Blob([ JSON.stringify(pf) ], { type: 'application/json' });
 			let uri = URL.createObjectURL(b);
-			let fn = 'destriant_' + Date.now().toString() + '.json';
+			let fn = 'destriant_' + new Date().toISOString() + '.json';
 
 			modal.find('p').empty().append($(document.createElement('a')).append(
 				'Download portfolio: ' + fn

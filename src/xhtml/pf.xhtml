@@ -1,5 +1,29 @@
 <div class="p container-fluid" id="pf">
-	<table class="table table-sm table-striped">
+	<header class="d-flex justify-content-between align-items-center text-center">
+		<div>
+			<small class="text-muted">Cash available</small>
+			<h4 id="pf-cash-available"></h4>
+		</div>
+		<div>
+			<small class="text-muted">Value of positions</small>
+			<h4 id="pf-positions-value"></h4>
+		</div>
+		<div>
+			<small class="text-muted">Account value</small>
+			<h4 id="pf-account-value"></h4>
+		</div>
+		<div>
+			<small class="text-muted">Day change</small>
+			<h4 id="pf-day-change">?</h4>
+		</div>
+		<div>
+			<form class="form-inline" id="pf-date-select">
+				<input type="date" id="pf-date-select-date" class="form-control form-control-sm" placeholder="YYYY-MM-DD" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" />
+				<button type="submit" class="btn btn-primary btn-sm ml-2">Change date</button>
+			</form>
+		</div>
+	</header>
+	<table class="table table-sm table-striped mt-4">
 		<thead>
 			<tr>
 				<th scope="col">Instrument</th>
@@ -12,13 +36,15 @@
 				<th scope="col" class="text-right">Exposure</th>
 				<th scope="col" class="text-right">% Exposure</th>
 			</tr>
+		</thead>
+		<tfoot>
 			<tr>
-				<th colspan="6"></th>
+				<th colspan="6">Totals</th>
 				<th id="pf-total-pnl" class="text-right"></th>
 				<th id="pf-total-exposure" class="text-right"></th>
 				<th id="pf-total-exposure-percent" class="text-right"></th>
 			</tr>
-		</thead>
+		</tfoot>
 		<tbody>
 		</tbody>
 	</table>
