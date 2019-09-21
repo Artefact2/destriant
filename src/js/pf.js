@@ -68,6 +68,7 @@ const dst_pf = function*(state, filters, dates) {
 
 		if(i === imax || state.transactions[i].date > date) {
 			dst_pf_compute_realized(state, pf, date);
+			pf.date = date;
 			yield $.extend(true, {}, pf); /* XXX: deep copy is meh */
 			continue;
 		}

@@ -1,0 +1,43 @@
+<div class="p container-fluid" id="perf">
+	<form class="form-inline justify-content-end" id="perf-date-selector">
+		<div class="btn-group" role="group">
+			<button type="button" class="btn btn-secondary btn-sm" id="perf-date-5y">5Y</button>
+			<button type="button" class="btn btn-secondary btn-sm" id="perf-date-2y">2Y</button>
+			<button type="button" class="btn btn-secondary btn-sm" id="perf-date-1y">1Y</button>
+			<button type="button" class="btn btn-secondary btn-sm" id="perf-date-6m">6M</button>
+			<button type="button" class="btn btn-secondary btn-sm" id="perf-date-3m">3M</button>
+			<button type="button" class="btn btn-secondary btn-sm" id="perf-date-ytd">YTD</button>
+			<button type="button" class="btn btn-secondary btn-sm" id="perf-date-mtd">MTD</button>
+		</div>
+		<input type="date" id="perf-date-start" class="form-control form-control-sm ml-4" placeholder="YYYY-MM-DD" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" />
+		<input type="date" id="perf-date-end" class="form-control form-control-sm ml-2" placeholder="YYYY-MM-DD" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" />
+		<button type="submit" class="btn btn-primary btn-sm ml-2">Set timespan</button>
+	</form>
+	<div class="row mt-2">
+		<div class="col-lg-4">
+			<div class="d-flex border-bottom border-secondary">
+				<h6 class="mb-1">Summary, EUR</h6>
+			</div>
+			<table class="table table-sm">
+				<tbody>
+					<tr>
+						<td class="border-top-0 text-muted">Account value, <span id="perf-start-date"></span></td>
+						<td class="border-top-0 text-right" id="perf-start-value"></td>
+					</tr>
+					<tr><td class="text-muted">Realized P/L</td><td id="perf-realized-pnl" class="text-right"></td></tr>
+					<tr><td class="text-muted">Total P/L</td><td id="perf-pnl" class="text-right"></td></tr>
+					<tr><td class="text-muted">Cash transfers</td><td id="perf-cash-xfers" class="text-right"></td></tr>
+					<tr><td class="text-muted">Account value, <span id="perf-end-date"></span></td><td id="perf-end-value" class="text-right"></td></tr>
+					<tr><td class="text-muted">Change in account value</td><td id="perf-value-delta" class="text-right"></td></tr>
+					<tr><td class="text-muted">Internal rate of return</td><td id="perf-irr" class="text-right"></td></tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="col-lg-8">
+			<div class="d-flex border-bottom border-secondary">
+				<h6 class="mb-1">Account value</h6>
+			</div>
+			<div id="perf-account-value-graph"></div>
+		</div>
+	</div>
+</div>
