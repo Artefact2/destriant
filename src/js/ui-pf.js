@@ -30,6 +30,7 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 	let tbody = $("div#pf tbody");
 	let closedpnl = 0.0;
 	tbody.empty();
+	$("dpv#pf .stale").removeClass('stale');
 
 	for(let tkr in pf.total.securities) {
 		let s = pf.total.securities[tkr]
@@ -59,9 +60,6 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 		if(s.stale) {
 			tr.find('span.currency-amount').slice(1).addClass('stale');
 		}
-		if(tkr in pfy.total.securities && pfy.total.securities[tkr].stale) {
-			tr.find('span.currency-amount').get(3).addClass('stale');
-		}
 	}
 
 	$("td#pf-total-pnl-closed").empty().append(dst_format_currency_gain('EUR', closedpnl)); /* XXX */
@@ -77,7 +75,7 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 	$("h4#pf-account-value").empty().append(dst_format_currency_amount('EUR', pf.total.basis + pf.total.unrealized)); /* XXX */
 
 	if(pf.total.stale) {
-		$("th#pf-total-exposure, th#pf-total-pnl, h4#pf-positions-value, h4#pf-account-value").find('span.currency-amount').addClass('stale');
+		$(".pf-total-exposure, .pf-total-pnl, h4#pf-positions-value, h4#pf-account-value").find('span.currency-amount').addClass('stale');
 	}
 	if(pf.total.stale || pfy.total.stale) {
 		$("h4#pf-day-change, h4#pf-day-change-percentage").find('span.currency-amount').addClass('stale');

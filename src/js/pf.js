@@ -194,6 +194,7 @@ const dst_pf_compute_realized = (state, pf, date) => {
 	date = d.toISOString().split('T')[0];
 
 	pf.total.unrealized = 0.0;
+	pf.total.stale = false;
 	let pricemap = {};
 	for(let t in pf.total.securities) {
 		let s = pf.total.securities[t];
@@ -233,6 +234,7 @@ const dst_pf_compute_realized = (state, pf, date) => {
 		let a = pf.accounts[accountid];
 		let fees = accountmap[accountid].fees;
 		a.unrealized = 0.0;
+		a.stale = false;
 
 		for(let t in a.securities) {
 			let s = a.securities[t];

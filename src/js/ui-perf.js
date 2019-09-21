@@ -95,12 +95,17 @@ const dst_regen_perf = state => {
 	$("td#perf-cash-xfers").empty().append(dst_format_currency_amount('EUR', epf.total.basis - epf.total.realized - spf.total.basis + spf.total.realized)); /* XXX */
 	$("td#perf-value-delta").empty().append(dst_format_currency_amount('EUR', epf.total.basis + epf.total.unrealized - spf.total.basis - spf.total.unrealized)); /* XXX */
 	$("td#perf-irr").text('?'); /* XXX */
+
+	$("div#perf .stale").removeClass('stale');
+	if(spf.total.stale) {
+		$("td#perf-start-value, td#perf-pnl, td#perf-value-delta, td#perf-irr").find('span.currency-amount').addClass('stale');
+	}
+	if(epf.total.stale) {
+		$("td#perf-end-value, td#perf-pnl, td#perf-value-delta, td#perf-irr").find('span.currency-amount').addClass('stale');
+	}
 };
 
 dst_on_load(() => {
-	$("form#perf-date-selector").submit(dst_fetch_and_regen_perf);
-	$("select#main-account-selector").change(dst_fetch_and_regen_perf); /* XXX be lazy */
-
 	$("button#perf-date-5y").click(dst_set_perf_range(d => d.setFullYear(d.getFullYear() - 5)));
 	$("button#perf-date-2y").click(dst_set_perf_range(d => d.setFullYear(d.getFullYear() - 2)));
 	$("button#perf-date-1y").click(dst_set_perf_range(d => d.setFullYear(d.getFullYear() - 1)));
@@ -108,4 +113,7 @@ dst_on_load(() => {
 	$("button#perf-date-3m").click(dst_set_perf_range(d => d.setMonth(d.getMonth() - 3)));
 	$("button#perf-date-ytd").click(dst_set_perf_range(d => { d.setMonth(0); d.setDate(1); })).click();
 	$("button#perf-date-mtd").click(dst_set_perf_range(d => d.setDate(1)));
+
+	$("form#perf-date-selector").submit(dst_fetch_and_regen_perf);
+	$("select#main-account-selector").change(dst_fetch_and_regen_perf); /* XXX be lazy */
 });
