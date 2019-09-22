@@ -87,6 +87,55 @@ const dst_make_price_tr = (ticker, date, price, currency) => $(document.createEl
 	).addClass('text-right')
 );
 
+const dst_import_prices = (text, fmt, ticker) => dst_get_state('prices').then(prices => {
+	if(prices === null) prices = {};
+
+	if(fmt === 'raw') {
+		dst_import_raw_prices(prices, ticker, text);
+	} else if(fmt === 'bdcsv') {
+		dst_import_bdcsv_prices(prices, ticker, text);
+	} else {
+		console.error("unknown import price fmt", fmt);
+	}
+
+	return prices;
+}).then(prices => {
+	dst_set_state('prices', prices);
+	dst_trigger_prices_change(prices);
+	return prices;
+});
+
+const dst_import_raw_prices = (prices, ticker, text) => {
+	let s = JSON.parse(text);
+	console.assert($.isArray(s));
+	s.forEach(row => {
+		console.assert(row.length === 3);
+		console.assert(typeof row[0] === "string" && typeof row[1] === "string" && typeof row[2] === "number");
+		console.assert(row[1].match(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/));
+		if(!(row[0] in prices)) prices[row[0]] = {};
+		prices[row[0]][row[1]] = row[2];
+	});
+};
+
+const dst_import_bdcsv_prices = (prices, ticker, csv) => {
+	console.assert(ticker !== "__auto__");
+	if(ticker === "__auto__") return;
+
+	if(!(ticker in prices)) prices[ticker] = {};
+	let db = prices[ticker];
+
+	csv = csv.split("\n");
+	let cols = csv.shift().split(";");
+	console.assert(cols.length === 7 && cols[0] === "Date" && cols[4] === "Close"); /* XXX: check currency column */
+	for(let line of csv) {
+		if(line === "") continue;
+		line = line.split(";");
+		let date = line[0].substring(1).split(' ')[0].replace(/\//g, '-');
+		let val = parseFloat(line[4]);
+		db[date] = val;
+	}
+};
+
 dst_on_load(() => {
 	$("button#price-editor-new").click(() => {
 		let modal = $("div#price-editor-modal");
@@ -183,11 +232,52 @@ dst_on_load(() => {
 		});
 	});
 
+	$("button#price-editor-import").click(() => {
+		let modal = $("div#price-editor-import-modal");
+		modal.find('form')[0].reset();
+		modal.find('form select').change();
+		modal.find('form button').prop('disabled', false);
+		modal.modal('show');
+	});
+	$("button#price-editor-import-modal-cancel").click(() => $("div#price-editor-import-modal").modal('hide'));
+	$("select#price-editor-import-format").change(function() {
+		let v = $(this).val();
+		let ta = $("textarea#price-editor-import-text");
+
+		switch(v) {
+		case 'raw':
+			ta.prop('placeholder', '[["FOO", "2019-04-24", 12.34], ["BAR", "2019-05-25", 56.78], …]');
+			break;
+
+		case 'bdcsv':
+			ta.prop('placeholder', "Date;Open;High;Low;Close;Volume;Currency\n\"2015/11/06 01:00\";100.45000000;100.45000000;100.02170000;100.02170000;0;EUR\n…");
+			break;
+		}
+	});
+	$("div#price-editor-import-modal form").submit(() => {
+		$("button#price-editor-import-modal-save").prop('disabled', true);
+		let modal = $("div#price-editor-import-modal");
+		let fmt = $("select#price-editor-import-format").val();
+		let finp = $("input#price-editor-import-file");
+		let ticker = $("select#price-editor-import-security").val();
+
+		if(finp[0].files.length > 0) {
+			let r = new FileReader();
+			r.onload = () => dst_import_prices(r.result, fmt, ticker).then(() => modal.modal('hide'));
+			r.readAsText(finp[0].files[0]);
+		} else {
+			dst_import_prices($("textarea#price-editor-import-text").val(), fmt, ticker).then(() => modal.modal('hide'));
+		}
+	});
+
 	$("input#price-editor-filter-before").val(new Date().toISOString().split('T')[0]);
 	$("input#price-editor-filter-after").val(new Date(Date.now() - 86400000 * 14).toISOString().split('T')[0]);
 	$("form#price-editor-filter").submit(() => dst_mark_stale($("div#price-editor")));
 
-	dst_on_securities_change(securities => dst_fill_security_select($("select#price-editor-security, select#price-editor-filter-security"), securities));
+	dst_on_securities_change(securities => dst_fill_security_select(
+		$("select#price-editor-security, select#price-editor-filter-security, select#price-editor-import-security"),
+		securities
+	));
 
 	$("div#price-editor").on('dst-load', dst_fetch_and_reload_price_table);
 });
