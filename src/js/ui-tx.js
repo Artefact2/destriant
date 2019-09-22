@@ -346,8 +346,8 @@ dst_on_load(function() {
 	$("form#tx-editor-filter").submit(dst_fetch_and_reload_tx_list);
 
 	dst_on_securities_change(() => dst_fill_security_select($("select#tx-editor-security, select#tx-editor-filter-security")));
-	dst_on_accounts_change(() => {
-		dst_fill_account_select($("select#tx-editor-account, select#tx-editor-filter-account"));
+	dst_on_accounts_change(accounts => {
+		dst_fill_account_select($("select#tx-editor-account, select#tx-editor-filter-account"), accounts);
 		dst_fetch_and_reload_tx_list();
 	});
 });

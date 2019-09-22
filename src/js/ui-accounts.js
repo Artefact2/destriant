@@ -17,7 +17,15 @@
 
 let dst_on_accounts_change_funcs = [];
 const dst_on_accounts_change = f => dst_on_accounts_change_funcs.push(f);
-const dst_trigger_accounts_change = () => dst_on_accounts_change_funcs.forEach(f => f());
+const dst_trigger_accounts_change = accounts => {
+	let work = accounts => dst_on_accounts_change_funcs.forEach(f => f(accounts));
+
+	if(typeof accounts === undefined) {
+		return dst_get_state('accounts').then(accounts => work(accounts));
+	} else {
+		return new Promise((resolve, reject) => resolve(work(accounts)));
+	}
+};
 
 const dst_fetch_and_reload_account_list = function() {
 	let tbody = $("div#acct-editor tbody");
@@ -31,11 +39,8 @@ const dst_fetch_and_reload_account_list = function() {
 
 const dst_reload_account_list = function(accounts) {
 	let tbody = $("div#acct-editor tbody");
-	let select = $("select#main-account-selector");
-	let sid = select.val();
 	if(accounts === null) accounts = [];
 	tbody.empty();
-	select.children('option:not(:first-child)').remove();
 
 	for(let k in accounts) {
 		let a = accounts[k];
@@ -56,17 +61,6 @@ const dst_reload_account_list = function(accounts) {
 			$(document.createElement('button')).addClass('btn btn-sm btn-secondary delete-account').text('Delete')
 		).addClass('text-right'));
 		tbody.append(tr);
-
-		let option = $(document.createElement('option'));
-		option.prop('value', a.id);
-		option.text(a.name); /* XXX */
-		select.append(option);
-	}
-
-	if(select.children('option[value="' + sid + '"]').length) {
-		select.val(sid);
-	} else {
-		select.val(sid = -1).change();
 	}
 
 	if(accounts.length > 0) return;
@@ -84,12 +78,20 @@ const dst_reset_acct_modal = function(modal) {
 	modal.data('idx', -1);
 };
 
-const dst_fill_account_select = function(select) {
-	return dst_get_state('accounts').then(accounts => {
+const dst_fill_account_select = function(select, accounts) {
+	let fill = (select, accounts) => {
 		if(accounts === null) accounts = [];
 		select.children('option.auto').remove();
-		accounts.forEach(a => select.append($(document.createElement('option')).addClass('auto').prop('value', a.id).text(a.name).data('currency', a.currency)));
-	});
+		accounts.forEach(a => select.append(
+			$(document.createElement('option')).addClass('auto').prop('value', a.id).text(a.name).data('currency', a.currency)
+		));
+	};
+
+	if(typeof accounts !== 'undefined') {
+		fill(select, accounts);
+	} else {
+		return dst_get_state('accounts').then(accounts => fill(select, accounts));
+	}
 };
 
 dst_on_load(function() {
@@ -141,7 +143,7 @@ dst_on_load(function() {
 			state.accounts.splice(tr.data('idx'), 1);
 			dst_set_state('accounts', state.accounts).then(function() {
 				tr.fadeOut(200, function() {
-					dst_trigger_accounts_change();
+					dst_trigger_accounts_change(state.accounts);
 					dst_reload_account_list(state.accounts);
 				});
 			});
@@ -191,7 +193,7 @@ dst_on_load(function() {
 
 			dst_set_state('accounts', accounts).then(function() {
 				dst_reload_account_list(accounts);
-				dst_trigger_accounts_change();
+				dst_trigger_accounts_change(accounts);
 				modal.modal('hide');
 			});
 		});
@@ -201,24 +203,6 @@ dst_on_load(function() {
 	});
 
 	dst_fill_currency_select($("select#acct-editor-acct-ccy"));
-	dst_fetch_and_reload_account_list().then(() => {
-		dst_get_state('settings').then(settings => {
-			let select = $("select#main-account-selector");
-			if(settings !== null && 'main-account' in settings && select.children("option[value='" + settings['main-account'] + "']").length === 1) {
-				select.val(settings['main-account']).change();
-			} else {
-				select.val("-1").change();
-			}
-			select.change(function() {
-				let v = parseInt($(this).val(), 10);
-				dst_get_state('settings').then(settings => {
-					if(settings === null) settings = {};
-					settings['main-account'] = v;
-					dst_set_state('settings', settings);
-				});
-			});
-		});
-
-		dst_trigger_accounts_change();
-	});
+	dst_fetch_and_reload_account_list();
+	dst_trigger_accounts_change();
 });

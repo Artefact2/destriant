@@ -17,7 +17,7 @@
 
 const dst_mark_stale = elems => {
 	elems.addClass('stale');
-	elems.filter(':visible').removeClass('stale').trigger('dst-load');
+	elems.filter(':visible').removeClass('stale').trigger('dst-load').trigger('dst-show');
 };
 
 dst_on_load(function() {
@@ -37,8 +37,10 @@ dst_on_load(function() {
 			tdiv.fadeIn({
 				duration: 200,
 				start: () => {
-					if(!tdiv.hasClass('stale')) return;
-					tdiv.removeClass('stale').trigger('dst-load');
+					if(tdiv.hasClass('stale')) {
+						tdiv.removeClass('stale').trigger('dst-load');
+					}
+					tdiv.trigger('dst-show');
 				},
 				complete: () => history.replaceState(null, "", "#" + target),
 			});
@@ -52,14 +54,40 @@ dst_on_load(function() {
 		}
 	});
 
-	dst_get_state('accounts').then(accounts => {
-		if(accounts !== null && accounts.length !== 0) {
+	dst_get_states([ 'accounts', 'settings' ]).then(state => {
+		if(state.accounts !== null && state.accounts.length !== 0) {
 			if(location.hash.length < 2 || location.hash === "#welcome") {
 				location.hash = "#pf";
 			}
 		} else {
 			location.hash = "#welcome";
 		}
+
+		let select = $("select#main-account-selector");
+		dst_fill_account_select(select, state.accounts);
+		if(state.settings !== null && 'main-account' in state.settings
+		   && select.children("option[value='" + state.settings['main-account'] + "']").length === 1) {
+			select.val(state.settings['main-account']);
+		}
+		select.change(function() {
+			let v = parseInt($(this).val(), 10);
+			dst_get_state('settings').then(settings => {
+				if(settings === null) settings = {};
+				settings['main-account'] = v;
+				dst_set_state('settings', settings);
+			});
+		});
+		dst_on_accounts_change(accounts => {
+			let s = $("select#main-account-selector");
+			let v = s.val();
+			dst_fill_account_select(s, accounts);
+			if(s.children("option[value='" + v + "']").length === 1) {
+				s.val(v);
+			} else {
+				s.val("-1");
+			}
+		});
+
 		$("body > div.p").hide();
 		$("nav a.p-link[data-target='" + location.hash.substring(1) + "']").click();
 	});
