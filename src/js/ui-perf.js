@@ -294,6 +294,8 @@ const dst_regen_monthly_pnl = state => {
 		}
 		end = new Date().toISOString().split('T')[0];
 		if(typeof start === 'undefined') start = end;
+		else start = start.date;
+		console.log(account, start, end);
 		for(let pf of dst_pf(state, { accounts: account === -1 ? null : [ account ] }, dst_generate_months_range(start, end))) {
 			if(ppf === null) {
 				ppf = pf;
