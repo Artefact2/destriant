@@ -153,7 +153,9 @@ dst_on_load(function() {
 	$("div#acct-editor-modal button#acct-editor-modal-cancel").click(function() {
 		$("div#acct-editor-modal").modal('hide');
 	});
-	$("div#acct-editor-modal form").submit(function() {
+	$("div#acct-editor-modal form").submit(function(e) {
+		e.preventDefault();
+
 		let modal = $("div#acct-editor-modal");
 		let btn = modal.find("button#acct-editor-modal-save");
 

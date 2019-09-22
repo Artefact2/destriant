@@ -107,7 +107,8 @@ dst_on_load(function() {
 	$("div#security-editor-modal button#security-editor-modal-cancel").click(function() {
 		$("div#security-editor-modal").modal('hide');
 	});
-	$("div#security-editor-modal form").submit(function() {
+	$("div#security-editor-modal form").submit(function(e) {
+		e.preventDefault();
 		let modal = $("div#security-editor-modal");
 		let btn = modal.find("button#security-editor-modal-save");
 

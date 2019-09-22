@@ -340,6 +340,16 @@ const dst_generate_perf_charts = () => {
 };
 
 dst_on_load(() => {
+	$("div#perf").on('dst-load', dst_fetch_and_regen_perf);
+	$("form#perf-date-selector").submit(function(e) {
+		e.preventDefault();
+		dst_mark_stale($("div#perf"));
+	});
+	$("select#main-account-selector").change(() => dst_mark_stale($("div#perf")));
+	dst_on_securities_change(() => dst_mark_stale($("div#perf")));
+	dst_on_tx_change(() => dst_mark_stale($("div#perf")));
+	dst_on_prices_change(() => dst_mark_stale($("div#perf")));
+
 	$("button#perf-date-5y").click(dst_set_perf_range(d => d.setFullYear(d.getFullYear() - 5)));
 	$("button#perf-date-2y").click(dst_set_perf_range(d => d.setFullYear(d.getFullYear() - 2)));
 	$("button#perf-date-1y").click(dst_set_perf_range(d => d.setFullYear(d.getFullYear() - 1)));
@@ -347,11 +357,4 @@ dst_on_load(() => {
 	$("button#perf-date-3m").click(dst_set_perf_range(d => d.setMonth(d.getMonth() - 3)));
 	$("button#perf-date-ytd").click(dst_set_perf_range(d => { d.setMonth(0); d.setDate(1); })).click();
 	$("button#perf-date-mtd").click(dst_set_perf_range(d => d.setDate(1)));
-
-	$("div#perf").on('dst-load', dst_fetch_and_regen_perf);
-	$("form#perf-date-selector").submit(() => dst_mark_stale($("div#perf")));
-	$("select#main-account-selector").change(() => dst_mark_stale($("div#perf")));
-	dst_on_securities_change(() => dst_mark_stale($("div#perf")));
-	dst_on_tx_change(() => dst_mark_stale($("div#perf")));
-	dst_on_prices_change(() => dst_mark_stale($("div#perf")));
 });

@@ -187,7 +187,10 @@ dst_on_load(() => {
 
 	$("div#pf").on('dst-load', dst_fetch_and_regen_pf_table);
 	$("select#main-account-selector").change(() => dst_mark_stale($("div#pf")));
-	$("form#pf-date-select").submit(() => dst_mark_stale($("div#pf")));
+	$("form#pf-date-select").submit(function(e) {
+		e.preventDefault();
+		dst_mark_stale($("div#pf"));
+	});
 	dst_on_securities_change(() => dst_mark_stale($("div#pf")));
 	dst_on_tx_change(() => dst_mark_stale($("div#pf")));
 	dst_on_prices_change(() => dst_mark_stale($("div#pf")));

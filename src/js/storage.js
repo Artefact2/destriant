@@ -78,7 +78,9 @@ dst_on_load(function() {
 	$("button#import-pf-modal-close").click(function() {
 		$("div#import-pf-modal").modal('hide');
 	});
-	$("div#import-pf-modal form").submit(function() {
+	$("div#import-pf-modal form").submit(function(e) {
+		e.preventDefault();
+
 		let input = $("div#import-pf-modal input#import-pf-file")[0];
 		if(input.files.length !== 1) return;
 

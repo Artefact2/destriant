@@ -155,7 +155,8 @@ dst_on_load(function() {
 		$("div#tx-editor-price-currency").text(ccy);
 	});
 
-	$("div#tx-editor-modal form").submit(function() {
+	$("div#tx-editor-modal form").submit(function(e) {
+		e.preventDefault();
 		let modal = $("div#tx-editor-modal");
 		let type = modal.find('select#tx-editor-type').val();
 		let total = NaN;
@@ -356,7 +357,10 @@ dst_on_load(function() {
 
 	$("input#tx-editor-filter-before").val(new Date().toISOString().split('T')[0]);
 	$("input#tx-editor-filter-after").val(new Date(Date.now() - 86400000 * 100).toISOString().split('T')[0]);
-	$("form#tx-editor-filter").submit(() => dst_mark_stale($("div#tx-editor")));
+	$("form#tx-editor-filter").submit(e => {
+		e.preventDefault();
+		dst_mark_stale($("div#tx-editor"));
+	});
 
 	dst_on_securities_change(securities => dst_fill_security_select($("select#tx-editor-security, select#tx-editor-filter-security"), securities));
 	dst_on_accounts_change(accounts => {

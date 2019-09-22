@@ -147,7 +147,8 @@ dst_on_load(() => {
 	);
 	$("button#price-editor-modal-cancel").click(() => $("div#price-editor-modal").modal('hide'));
 
-	$("div#price-editor-modal form").submit(() => {
+	$("div#price-editor-modal form").submit(function(e) {
+		e.preventDefault();
 		$("button#price-editor-modal-save").prop('disabled', true);
 		let date = $("input#price-editor-date").val();
 		let ticker = $("select#price-editor-security").val();
@@ -254,7 +255,8 @@ dst_on_load(() => {
 			break;
 		}
 	});
-	$("div#price-editor-import-modal form").submit(() => {
+	$("div#price-editor-import-modal form").submit(function(e) {
+		e.preventDefault();
 		$("button#price-editor-import-modal-save").prop('disabled', true);
 		let modal = $("div#price-editor-import-modal");
 		let fmt = $("select#price-editor-import-format").val();
@@ -272,7 +274,10 @@ dst_on_load(() => {
 
 	$("input#price-editor-filter-before").val(new Date().toISOString().split('T')[0]);
 	$("input#price-editor-filter-after").val(new Date(Date.now() - 86400000 * 14).toISOString().split('T')[0]);
-	$("form#price-editor-filter").submit(() => dst_mark_stale($("div#price-editor")));
+	$("form#price-editor-filter").submit(function(e) {
+		e.preventDefault();
+		dst_mark_stale($("div#price-editor"));
+	});
 
 	dst_on_securities_change(securities => dst_fill_security_select(
 		$("select#price-editor-security, select#price-editor-filter-security, select#price-editor-import-security"),
