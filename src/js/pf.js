@@ -52,7 +52,7 @@ const dst_pf = function*(state, filters, dates) {
 		while(i < imax) {
 			let tx = state.transactions[i];
 			if(filters.before !== null && tx.date > filters.before) break;
-			if(filters.accounts !== null && !(tx.account in accounts)) {
+			if(tx.type !== 'split' && filters.accounts !== null && !(tx.account in accounts)) {
 				++i;
 				continue;
 			}
