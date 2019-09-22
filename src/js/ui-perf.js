@@ -15,6 +15,8 @@
 
 "use strict";
 
+let dst_chart_perf_account_value = null;
+
 const dst_set_perf_range = rewind => (() => {
 	let d = new Date();
 	$("input#perf-date-end").val(d.toISOString().split('T')[0]);
@@ -106,32 +108,10 @@ const dst_regen_perf = state => {
 	cashflows.push([ 1, -epf.total.basis - epf.total.unrealized ]);
 	let irr = dst_irr(cashflows);
 
-	/* XXX: don't recreate chart every time */
-	let chart = c3.generate({
-		interaction: { enabled: false },
-		bindto: 'div#perf-account-value-graph',
-		size: { height: 250 },
-		data: {
-			x: 'x',
-			columns: values,
-			type: 'area',
-			colors: {
-				accountval: 'hsla(200, 100%, 60%, .8)',
-			},
-		},
-		axis: {
-			x: {
-				type: 'timeseries',
-				tick: { format: '%Y-%m-%d' },
-			},
-		},
-		legend: { show: false },
-		grid: {
-			x: { show: true },
-			y: { show: true },
-		},
-		area: { zerobased: false },
-		point: { show: false },
+	if(dst_chart_perf_account_value === null) dst_generate_perf_charts();
+	dst_chart_perf_account_value.load({
+		unload: true,
+		columns: values,
 	});
 
 	$("span#perf-start-date").text(spf.date);
@@ -159,6 +139,34 @@ const dst_regen_perf = state => {
 		$("td#perf-end-value, td#perf-pnl, td#perf-value-delta, td#perf-irr").find('span.currency-amount').addClass('stale');
 	}
 };
+
+const dst_generate_perf_charts = () => dst_chart_perf_account_value = c3.generate({
+	interaction: { enabled: false },
+	transition: { duration: 0 },
+	bindto: 'div#perf-account-value-graph',
+	size: { height: 250 },
+	data: {
+		x: 'x',
+		columns: [],
+		type: 'area',
+		colors: {
+			accountval: 'hsla(200, 100%, 60%, .8)',
+		},
+	},
+	axis: {
+		x: {
+			type: 'timeseries',
+			tick: { format: '%Y-%m-%d' },
+		},
+	},
+	legend: { show: false },
+	grid: {
+		x: { show: true },
+		y: { show: true },
+	},
+	area: { zerobased: false },
+	point: { show: false },
+});
 
 dst_on_load(() => {
 	$("button#perf-date-5y").click(dst_set_perf_range(d => d.setFullYear(d.getFullYear() - 5)));

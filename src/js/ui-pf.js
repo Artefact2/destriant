@@ -15,6 +15,8 @@
 
 "use strict";
 
+let dst_chart_pf_pnl = null, dst_chart_pf_exposure = null;
+
 const dst_fetch_and_regen_pf_table = () => dst_get_states([ 'accounts', 'securities', 'transactions', 'prices' ]).then(state => {
 	let v = parseInt($("select#main-account-selector").val(), 10);
 	let before = $("input#pf-date-select-date").val();
@@ -100,17 +102,32 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 		names.push(state.securities[t].name.substring(0, 50));
 	}
 
-	let chart = c3.generate({
+	if(dst_chart_pf_pnl === null) dst_generate_pf_charts();
+	dst_chart_pf_pnl.load({
+		unload: true,
+		columns: [ profits, losses ],
+		categories: names,
+	});
+	dst_chart_pf_exposure.load({
+		unload: true,
+		columns: [ exp ],
+		categories: names,
+	});
+	let height = { height: Math.min(500, (names.length + 1) * 30) };
+	dst_chart_pf_pnl.resize(height);
+	dst_chart_pf_exposure.resize(height);
+};
+
+const dst_generate_pf_charts = () => {
+	dst_chart_pf_pnl = c3.generate({
 		interaction: { enabled: false },
-		bindto: '#pf-pnl-graph',
-		size: {
-			height: Math.min(500, (names.length + 1) * 30)
-		},
+		transition: { duration: 0 },
+		bindto: 'div#pf-pnl-graph',
 		bar: {
 			width: { ratio: .5 },
 		},
 		data: {
-			columns: [ profits, losses ],
+			columns: [],
 			type: 'bar',
 			groups: [ [ 'profits', 'losses' ] ],
 			colors: {
@@ -122,7 +139,7 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 			rotated: true,
 			x: {
 				type: 'category',
-				categories: names,
+				categories: [],
 				tick: { multiline: false },
 			}
 		},
@@ -132,17 +149,15 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 			y: { show: true },
 		},
 	});
-	let chart2 = c3.generate({
+	dst_chart_pf_exposure = c3.generate({
 		interaction: { enabled: false },
-		bindto: '#pf-exposure-graph',
-		size: {
-			height: Math.min(500, (names.length + 1) * 30)
-		},
+		transition: { duration: 0 },
+		bindto: 'div#pf-exposure-graph',
 		bar: {
 			width: { ratio: .5 },
 		},
 		data: {
-			columns: [ exp ],
+			columns: [],
 			type: 'bar',
 			colors: {
 				'exposure': 'hsla(200, 100%, 60%, .8)',
@@ -152,7 +167,7 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 			rotated: true,
 			x: {
 				type: 'category',
-				categories: names,
+				categories: [],
 				tick: { multiline: false },
 			}
 		},
