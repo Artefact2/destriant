@@ -40,3 +40,9 @@ abbr.rounded-figure {
 		stroke-dasharray: 1 0;
 	}
 }
+
+td#perf-start-value, td#perf-end-value, td#perf-irr {
+	.currency-amount {
+		font-weight: bold;
+	}
+}

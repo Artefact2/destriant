@@ -39,16 +39,47 @@ const dst_generate_day_range = function*(start, end, inc) {
 	}
 };
 
+const dst_irr = cashflows => {
+	if(cashflows.length < 2) return 1;
+
+	let fv = (rate, cashflows) => {
+		rate = Math.log(rate);
+		let nav = 0.0;
+		let time = 0.0;
+		for(let cf of cashflows) {
+			nav *= Math.exp(rate * (cf[0] - time));
+			nav += cf[1];
+			time = cf[0];
+		}
+		return nav;
+	};
+
+	let m = 0, M = 11;
+	while(M - m >= .00005) {
+		let mid = (m + M) / 2.0;
+		if(fv(mid, cashflows) > 0.0) {
+			M = mid;
+		} else {
+			m = mid;
+		}
+	}
+
+	return m;
+};
+
 const dst_fetch_and_regen_perf = () => dst_get_states([ 'securities', 'accounts', 'transactions', 'prices' ]).then(state => dst_regen_perf(state));
 const dst_regen_perf = state => {
 	let start = $("input#perf-date-start").val();
 	let end = $("input#perf-date-end").val();
 	let account = parseInt($("select#main-account-selector").val(), 10);
 
-	let spf = null, epf = null;
+	let spf = null, epf = null, ppf = null;
 	let values = [ [ 'x' ], [ 'accountval' ] ];
+	let cashflows = [];
 
-	let ndays = (new Date(end).getTime() - new Date(start).getTime()) / 86400000.0;
+	let endtime = new Date(end).getTime();
+	let starttime = new Date(start).getTime();
+	let ndays = (endtime - starttime) / 86400000.0;
 	let inc = Math.max(1, Math.floor(ndays / 100));
 
 	for(let pf of dst_pf(state, { accounts: account === -1 ? null : [ account ] }, dst_generate_day_range(start, end, inc))) {
@@ -56,7 +87,21 @@ const dst_regen_perf = state => {
 		epf = pf;
 		values[0].push(pf.date);
 		values[1].push(pf.total.basis + pf.total.unrealized);
+
+		if(ppf === null) {
+			cashflows.push([ (new Date(pf.date).getTime() - starttime) / (endtime - starttime), pf.total.basis + pf.total.unrealized ]);
+			ppf = pf;
+		} else {
+			let cf = pf.total.basis - pf.total.realized - ppf.total.basis + ppf.total.realized;
+			ppf = pf;
+			if(Math.abs(cf) > 1e-6) {
+				cashflows.push([ (new Date(pf.date).getTime() - starttime) / (endtime - starttime), cf ]);
+			}
+		}
 	}
+
+	cashflows.push([ 1, -epf.total.basis - epf.total.unrealized ]);
+	let irr = dst_irr(cashflows);
 
 	/* XXX: don't recreate chart every time */
 	let chart = c3.generate({
@@ -94,7 +139,14 @@ const dst_regen_perf = state => {
 	$("td#perf-pnl").empty().append(dst_format_currency_gain('EUR', epf.total.realized + epf.total.unrealized - spf.total.realized - spf.total.unrealized)); /* XXX */
 	$("td#perf-cash-xfers").empty().append(dst_format_currency_amount('EUR', epf.total.basis - epf.total.realized - spf.total.basis + spf.total.realized)); /* XXX */
 	$("td#perf-value-delta").empty().append(dst_format_currency_amount('EUR', epf.total.basis + epf.total.unrealized - spf.total.basis - spf.total.unrealized)); /* XXX */
-	$("td#perf-irr").text('?'); /* XXX */
+	if(ndays > 365) {
+		$("td#perf-irr").empty().append(
+			$(document.createElement('small')).addClass('text-muted').text('annualized '),
+			dst_format_percentage_gain(Math.exp(Math.log(irr) / (ndays / 365.25)))
+		);
+	} else {
+		$("td#perf-irr").empty().append(dst_format_percentage_gain(irr));
+	}
 
 	$("div#perf .stale").removeClass('stale');
 	if(spf.total.stale) {
