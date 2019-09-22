@@ -87,10 +87,10 @@ const dst_fill_account_select = function(select, accounts) {
 		));
 	};
 
-	if(typeof accounts !== 'undefined') {
-		fill(select, accounts);
-	} else {
+	if(typeof accounts === 'undefined') {
 		return dst_get_state('accounts').then(accounts => fill(select, accounts));
+	} else {
+		return new Promise((resolve, reject) => resolve(fill(select, accounts)));
 	}
 };
 

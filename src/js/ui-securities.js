@@ -17,7 +17,15 @@
 
 let dst_on_securities_change_funcs = [];
 const dst_on_securities_change = f => dst_on_securities_change_funcs.push(f);
-const dst_trigger_securities_change = () => dst_on_securities_change_funcs.forEach(f => f());
+const dst_trigger_securities_change = securities => {
+	let work = securities => dst_on_securities_change_funcs.forEach(f => f(securities));
+
+	if(typeof securities === undefined) {
+		return dst_get_state('securities').then(securities => work(securities));
+	} else {
+		return new Promise((resolve, reject) => resolve(work(securities)));
+	}
+};
 
 const dst_reset_securities_modal = function(modal) {
 	modal.find('.modal-title').text('New security');
@@ -73,14 +81,20 @@ const dst_reload_securities_list = function(securities) {
 	}
 };
 
-const dst_fill_security_select = function(select) {
-	return dst_get_state('securities').then(securities => {
+const dst_fill_security_select = function(select, securities) {
+	let work = (select, securities) => {
 		if(securities === null) securities = {};
 		select.children('option.auto').remove();
 		Object.values(securities).forEach(s => select.append($(document.createElement('option')).addClass('auto').prop('value', s.ticker).text(
 			s.ticker + ', ' + s.name
 		).data('currency', s.currency)));
-	});
+	};
+
+	if(typeof securities === 'undefined') {
+		return dst_get_state('securities').then(securities => work(select, securities));
+	} else {
+		return new Promise((resolve, reject) => resolve(work(select, securities)));
+	}
 };
 
 dst_on_load(function() {
@@ -130,7 +144,7 @@ dst_on_load(function() {
 
 			dst_set_state('securities', secs).then(function() {
 				dst_reload_securities_list(secs);
-				dst_trigger_securities_change();
+				dst_trigger_securities_change(secs);
 				modal.modal('hide');
 			});
 		});
@@ -185,7 +199,7 @@ dst_on_load(function() {
 					if($.isEmptyObject(state.securities)) {
 						dst_reload_securities_list(state.securities);
 					}
-					dst_trigger_securities_change();
+					dst_trigger_securities_change(state.securities);
 				});
 			});
 		});

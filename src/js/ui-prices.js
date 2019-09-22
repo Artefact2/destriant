@@ -172,6 +172,6 @@ dst_on_load(() => {
 	$("input#price-editor-filter-after").val(new Date(Date.now() - 86400000 * 14).toISOString().split('T')[0]);
 	$("form#price-editor-filter").submit(dst_fetch_and_reload_price_table);
 
-	dst_on_securities_change(() => dst_fill_security_select($("select#price-editor-security, select#price-editor-filter-security")));
+	dst_on_securities_change(securities => dst_fill_security_select($("select#price-editor-security, select#price-editor-filter-security"), securities));
 	dst_fetch_and_reload_price_table();
 });

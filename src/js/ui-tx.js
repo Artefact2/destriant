@@ -345,7 +345,7 @@ dst_on_load(function() {
 	$("input#tx-editor-filter-after").val(new Date(Date.now() - 86400000 * 100).toISOString().split('T')[0]);
 	$("form#tx-editor-filter").submit(dst_fetch_and_reload_tx_list);
 
-	dst_on_securities_change(() => dst_fill_security_select($("select#tx-editor-security, select#tx-editor-filter-security")));
+	dst_on_securities_change(securities => dst_fill_security_select($("select#tx-editor-security, select#tx-editor-filter-security"), securities));
 	dst_on_accounts_change(accounts => {
 		dst_fill_account_select($("select#tx-editor-account, select#tx-editor-filter-account"), accounts);
 		dst_fetch_and_reload_tx_list();
