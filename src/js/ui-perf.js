@@ -114,6 +114,7 @@ dst_on_load(() => {
 	$("button#perf-date-ytd").click(dst_set_perf_range(d => { d.setMonth(0); d.setDate(1); })).click();
 	$("button#perf-date-mtd").click(dst_set_perf_range(d => d.setDate(1)));
 
-	$("form#perf-date-selector").submit(dst_fetch_and_regen_perf);
-	$("select#main-account-selector").change(dst_fetch_and_regen_perf); /* XXX be lazy */
+	$("div#perf").on('dst-load', dst_fetch_and_regen_perf);
+	$("form#perf-date-selector").submit(() => dst_mark_stale($("div#perf")));
+	$("select#main-account-selector").change(() => dst_mark_stale($("div#perf")));
 });

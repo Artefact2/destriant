@@ -15,7 +15,14 @@
 
 "use strict";
 
+const dst_mark_stale = elems => {
+	elems.addClass('stale');
+	elems.filter(':visible').removeClass('stale').trigger('dst-load');
+};
+
 dst_on_load(function() {
+	$("body > div.p").addClass('stale');
+
 	$("nav a.p-link").click(function(e) {
 		e.preventDefault();
 		let anchor = $(this);
@@ -26,8 +33,14 @@ dst_on_load(function() {
 			anchor.blur();
 			$("body > nav a.active").removeClass('active');
 			anchor.addClass('active');
-			$("body > div.p#" + target).trigger('dst-load').fadeIn(200, function() {
-				history.replaceState(null, "", "#" + target);
+			let tdiv = $("body > div.p#" + target);
+			tdiv.fadeIn({
+				duration: 200,
+				start: () => {
+					if(!tdiv.hasClass('stale')) return;
+					tdiv.removeClass('stale').trigger('dst-load');
+				},
+				complete: () => history.replaceState(null, "", "#" + target),
 			});
 		};
 
@@ -39,7 +52,7 @@ dst_on_load(function() {
 		}
 	});
 
-	dst_get_state('accounts').then(function(accounts) {
+	dst_get_state('accounts').then(accounts => {
 		if(accounts !== null && accounts.length !== 0) {
 			if(location.hash.length < 2 || location.hash === "#welcome") {
 				location.hash = "#pf";
@@ -48,7 +61,6 @@ dst_on_load(function() {
 			location.hash = "#welcome";
 		}
 		$("body > div.p").hide();
-		$("body > div.p" + location.hash).trigger('dst-load').show();
-		$("body > nav a[data-target='" + location.hash.substring(1) + "']").addClass('active');
+		$("nav a.p-link[data-target='" + location.hash.substring(1) + "']").click();
 	});
 });

@@ -165,10 +165,11 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 };
 
 dst_on_load(() => {
-	$("select#main-account-selector").change(dst_fetch_and_regen_pf_table);
-	$("form#pf-date-select").submit(dst_fetch_and_regen_pf_table);
-	$("input#pf-date-select-date").val(new Date().toISOString().split('T')[0]);
+	$("div#pf").on('dst-load', dst_fetch_and_regen_pf_table);
+	$("select#main-account-selector").change(() => dst_mark_stale($("div#pf")));
+	$("form#pf-date-select").submit(() => dst_mark_stale($("div#pf")));
 
+	$("input#pf-date-select-date").val(new Date().toISOString().split('T')[0]);
 	$("td#pf-total-exposure-percent").append(dst_format_percentage(2));
 	$("td#pf-total-exposure-closed").append(dst_format_currency_amount('EUR', 0.0)); /* XXX */
 	$("td#pf-total-exposure-percent-closed").append(dst_format_percentage(1));
