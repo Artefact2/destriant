@@ -288,14 +288,13 @@ const dst_regen_monthly_pnl = state => {
 		let start, end, ppf = null, monthlypnl = {};
 		let account = parseInt($("select#main-account-selector").val(), 10);
 		if(account === -1 && state.transactions.length > 0) {
-			start = state.transactions[0].date;
+			start = state.transactions[0];
 		} else {
 			start = state.transactions.find(tx => tx.id === account);
 		}
 		end = new Date().toISOString().split('T')[0];
 		if(typeof start === 'undefined') start = end;
 		else start = start.date;
-		console.log(account, start, end);
 		for(let pf of dst_pf(state, { accounts: account === -1 ? null : [ account ] }, dst_generate_months_range(start, end))) {
 			if(ppf === null) {
 				ppf = pf;
