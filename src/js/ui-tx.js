@@ -175,6 +175,7 @@ dst_on_load(function() {
 			tx.type = 'split';
 			tx.before = parseFloat(modal.find('input#tx-editor-split-before').val());
 			tx.after = parseFloat(modal.find('input#tx-editor-split-after').val());
+			tx.ticker = modal.find('select#tx-editor-security').val();
 		} else {
 			tx.type = 'security';
 			tx.ticker = modal.find('select#tx-editor-security').val();
