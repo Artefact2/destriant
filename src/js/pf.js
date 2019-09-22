@@ -208,6 +208,7 @@ const dst_pf_compute_realized = (state, pf, date) => {
 			if(state.prices !== null && t in state.prices) {
 				let fd = new Date(date), fdate;
 				for(let i = 0; i < 2; ++i) { /* XXX */
+					fd.setDate(fd.getDate() - 1);
 					fd = dst_lte_trading_day(fd);
 					fdate = fd.toISOString().split('T')[0];
 					if(fdate in state.prices[t]) {
@@ -284,6 +285,9 @@ const dst_lte_trading_day = date => {
 
 const dst_two_consecutive_days_gen = function*(date) {
 	let d = dst_lte_trading_day(date);
+	let ts = d.getTime();
+	d.setDate(d.getDate() - 1);
 	yield dst_lte_trading_day(d);
+	d.setTime(ts);
 	yield d;
 };
