@@ -84,7 +84,7 @@ dst_on_load(function() {
 			if(s.children("option[value='" + v + "']").length === 1) {
 				s.val(v);
 			} else {
-				s.val("-1");
+				s.val("-1").change();
 			}
 		});
 

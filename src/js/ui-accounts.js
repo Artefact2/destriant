@@ -15,12 +15,12 @@
 
 "use strict";
 
-let dst_on_accounts_change_funcs = [];
+const dst_on_accounts_change_funcs = [];
 const dst_on_accounts_change = f => dst_on_accounts_change_funcs.push(f);
 const dst_trigger_accounts_change = accounts => {
 	let work = accounts => dst_on_accounts_change_funcs.forEach(f => f(accounts));
 
-	if(typeof accounts === undefined) {
+	if(typeof accounts === 'undefined') {
 		return dst_get_state('accounts').then(accounts => work(accounts));
 	} else {
 		return new Promise((resolve, reject) => resolve(work(accounts)));

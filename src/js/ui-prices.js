@@ -15,6 +15,18 @@
 
 "use strict";
 
+const dst_on_prices_change_funcs = [];
+const dst_on_prices_change = f => dst_on_prices_change_funcs.push(f);
+const dst_trigger_prices_change = prices => {
+	let work = prices => dst_on_prices_change_funcs.forEach(f => f(prices));
+
+	if(typeof prices === 'undefined') {
+		return dst_get_state('prices').then(prices => work(prices));
+	} else {
+		return new Promise((resolve, reject) => resolve(work(prices)));
+	}
+};
+
 const dst_reset_price_modal = modal => {
 	modal.find('.modal-title').text('Input security price');
 	modal.find("button#price-editor-modal-save").prop('disabled', false);
@@ -109,6 +121,7 @@ dst_on_load(() => {
 				}
 
 				$("div#price-editor-modal").modal('hide');
+				dst_trigger_prices_change(prices);
 			});
 		});
 	});
@@ -130,6 +143,7 @@ dst_on_load(() => {
 				if($.isEmptyObject(prices)) {
 					dst_reload_price_table(prices);
 				}
+				dst_trigger_prices_change(prices);
 			}));
 		});
 	}).on('click', 'button.edit-price', function() {
@@ -162,6 +176,7 @@ dst_on_load(() => {
 
 				dst_set_state('prices', state.prices).then(() => {
 					dst_reload_price_table(state.prices);
+					dst_trigger_prices_change(state.prices);
 					btn.prop('disabled', false);
 				});
 			});
@@ -170,8 +185,9 @@ dst_on_load(() => {
 
 	$("input#price-editor-filter-before").val(new Date().toISOString().split('T')[0]);
 	$("input#price-editor-filter-after").val(new Date(Date.now() - 86400000 * 14).toISOString().split('T')[0]);
-	$("form#price-editor-filter").submit(dst_fetch_and_reload_price_table);
+	$("form#price-editor-filter").submit(() => dst_mark_stale($("div#price-editor")));
 
 	dst_on_securities_change(securities => dst_fill_security_select($("select#price-editor-security, select#price-editor-filter-security"), securities));
-	dst_fetch_and_reload_price_table();
+
+	$("div#price-editor").on('dst-load', dst_fetch_and_reload_price_table);
 });

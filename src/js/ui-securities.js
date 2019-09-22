@@ -15,12 +15,12 @@
 
 "use strict";
 
-let dst_on_securities_change_funcs = [];
+const dst_on_securities_change_funcs = [];
 const dst_on_securities_change = f => dst_on_securities_change_funcs.push(f);
 const dst_trigger_securities_change = securities => {
 	let work = securities => dst_on_securities_change_funcs.forEach(f => f(securities));
 
-	if(typeof securities === undefined) {
+	if(typeof securities === 'undefined') {
 		return dst_get_state('securities').then(securities => work(securities));
 	} else {
 		return new Promise((resolve, reject) => resolve(work(securities)));

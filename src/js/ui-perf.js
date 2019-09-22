@@ -117,4 +117,7 @@ dst_on_load(() => {
 	$("div#perf").on('dst-load', dst_fetch_and_regen_perf);
 	$("form#perf-date-selector").submit(() => dst_mark_stale($("div#perf")));
 	$("select#main-account-selector").change(() => dst_mark_stale($("div#perf")));
+	dst_on_securities_change(() => dst_mark_stale($("div#perf")));
+	dst_on_tx_change(() => dst_mark_stale($("div#perf")));
+	dst_on_prices_change(() => dst_mark_stale($("div#perf")));
 });
