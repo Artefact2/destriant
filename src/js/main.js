@@ -75,4 +75,12 @@ const dst_format_percentage_gain = pc => {
 	return sp;
 };
 
-dst_on_load(() => $("p#js-warning").remove());
+$(() => {
+	$("p#js-warning").remove();
+
+	/* XXX: required to avoid race conditions */
+	/*let main = dst_on_load_funcs.pop();
+	Promise.all(dst_on_load_funcs.map(f => new Promise((resolve, reject) => {
+		setTimeout(() => resolve(f()), 1);
+	}))).then(main);*/
+});

@@ -15,7 +15,7 @@
 
 "use strict";
 
-let dst_chart_perf_account_value = null;
+let dst_chart_perf_account_value = null, dst_chart_perf_instrument_pnl = null, dst_chart_perf_cumulative_pnl = null;
 
 const dst_set_perf_range = rewind => (() => {
 	let d = new Date();
@@ -81,6 +81,11 @@ const dst_regen_perf = state => {
 	let spf = null, epf = null, ppf = null;
 	let values = [ [ 'x' ], [ 'accountval' ] ];
 	let cashflows = [];
+	let cx = [ 'x' ];
+	let cprofits = [ 'profits' ];
+	let closses = [ 'losses' ];
+	let ppnl = null;
+	let pdate = null;
 
 	let endtime = new Date(end).getTime();
 	let starttime = new Date(start).getTime();
@@ -92,6 +97,29 @@ const dst_regen_perf = state => {
 		epf = pf;
 		values[0].push(pf.date);
 		values[1].push(pf.total.basis + pf.total.unrealized);
+
+		let pnl = pf.total.realized + pf.total.unrealized - spf.total.realized - spf.total.unrealized;
+		if(ppnl !== null) {
+			if(pnl >= 0 && ppnl < 0 || pnl < 0 && ppnl >= 0) {
+				let x1 = new Date(pdate).getTime();
+				let x2 = new Date(pf.date).getTime();
+				let a = (pnl - ppnl) / (x2 - x1);
+				let b = pnl - a * x2;
+				cx.push(-b / a);
+				cprofits.push(0);
+				closses.push(0);
+			}
+		}
+		if(pnl >= 0) {
+			cprofits.push(pnl);
+			closses.push(null);
+		} else {
+			cprofits.push(null);
+			closses.push(pnl);
+		}
+		cx.push(pf.date);
+		ppnl = pnl;
+		pdate = pf.date;
 
 		if(ppf === null) {
 			cashflows.push([ (new Date(pf.date).getTime() - starttime) / (endtime - starttime), pf.total.basis + pf.total.unrealized ]);
@@ -113,13 +141,46 @@ const dst_regen_perf = state => {
 		unload: true,
 		columns: values,
 	});
+	dst_chart_perf_cumulative_pnl.load({
+		unload: true,
+		columns: [ cx, cprofits, closses ],
+	});
+
+	let profits = [ 'profits' ];
+	let losses = [ 'losses' ];
+	let categories = [];
+	let gainers = [];
+
+	for(let t in epf.total.securities) {
+		let pnl = epf.total.securities[t].realized + epf.total.securities[t].unrealized;
+		if(t in spf.total.securities) {
+			pnl -= spf.total.securities[t].realized + spf.total.securities[t].unrealized;
+		}
+		if(Math.abs(epf.total.securities[t].quantity) < 1e-6 && Math.abs(pnl) < 1e-6) continue;
+
+		if(pnl >= 0) {
+			profits.push(pnl);
+			losses.push(0);
+		} else {
+			profits.push(0);
+			losses.push(pnl);
+		}
+		categories.push(state.securities[t].name.substring(0, 50));
+		gainers.push([ state.securities[t].name, pnl, epf.total.securities[t].stale || ((t in spf.total.securities) && spf.total.securities[t].stale) ]);
+	}
+	dst_chart_perf_instrument_pnl.load({
+		unload: true,
+		columns: [ profits, losses ],
+		categories: categories,
+	});
+	dst_chart_perf_instrument_pnl.resize({ height: Math.min(500, (categories.length + 1) * 30) });
 
 	$("span#perf-start-date").text(spf.date);
 	$("span#perf-end-date").text(epf.date);
 	$("td#perf-start-value").empty().append(dst_format_currency_amount('EUR', spf.total.basis + spf.total.unrealized)); /* XXX */
 	$("td#perf-end-value").empty().append(dst_format_currency_amount('EUR', epf.total.basis + epf.total.unrealized)); /* XXX */
 	$("td#perf-realized-pnl").empty().append(dst_format_currency_gain('EUR', epf.total.realized - spf.total.realized)); /* XXX */
-	$("td#perf-pnl").empty().append(dst_format_currency_gain('EUR', epf.total.realized + epf.total.unrealized - spf.total.realized - spf.total.unrealized)); /* XXX */
+	$(".perf-pnl").empty().append(dst_format_currency_gain('EUR', epf.total.realized + epf.total.unrealized - spf.total.realized - spf.total.unrealized)); /* XXX */
 	$("td#perf-cash-xfers").empty().append(dst_format_currency_amount('EUR', epf.total.basis - epf.total.realized - spf.total.basis + spf.total.realized)); /* XXX */
 	$("td#perf-value-delta").empty().append(dst_format_currency_amount('EUR', epf.total.basis + epf.total.unrealized - spf.total.basis - spf.total.unrealized)); /* XXX */
 	if(ndays > 365) {
@@ -133,40 +194,150 @@ const dst_regen_perf = state => {
 
 	$("div#perf .stale").removeClass('stale');
 	if(spf.total.stale) {
-		$("td#perf-start-value, td#perf-pnl, td#perf-value-delta, td#perf-irr").find('span.currency-amount').addClass('stale');
+		$("td#perf-start-value, .perf-pnl, td#perf-value-delta, td#perf-irr").find('span.currency-amount').addClass('stale');
 	}
 	if(epf.total.stale) {
-		$("td#perf-end-value, td#perf-pnl, td#perf-value-delta, td#perf-irr").find('span.currency-amount').addClass('stale');
+		$("td#perf-end-value, .perf-pnl, td#perf-value-delta, td#perf-irr").find('span.currency-amount').addClass('stale');
+	}
+
+	if(gainers.length > 0) {
+		gainers.sort((a, b) => a[1] - b[1]);
+		if(gainers[0][1] >= 0) {
+			$("table#perf-top-losers tbody").empty().append(
+				$(document.createElement('tr')).append(
+					$(document.createElement('td')).append(
+						$(document.createElement('small')).addClass('text-muted').text('No data available')
+					)
+				)
+			);
+		} else {
+			let tbody = $("table#perf-top-losers tbody").empty(), span;
+			for(let i = 0; i < 3 && i < gainers.length && gainers[i][1] < 0; ++i) {
+				tbody.append($(document.createElement('tr')).append(
+					$(document.createElement('td')).append(
+						$(document.createElement('small')).addClass('text-muted').text(gainers[i][0])
+					),
+					$(document.createElement('td')).addClass('text-right').append(
+						span = dst_format_currency_gain('EUR', gainers[i][1]) /* XXX */
+					)
+				));
+				if(gainers[i][2]) span.addClass('stale');
+			}
+		}
+		if(gainers[gainers.length - 1][1] <= 0) {
+			$("table#perf-top-gainers tbody").empty().append(
+				$(document.createElement('tr')).append(
+					$(document.createElement('td')).append(
+						$(document.createElement('small')).addClass('text-muted').text('No data available')
+					)
+				)
+			);
+		} else {
+			let tbody = $("table#perf-top-gainers tbody").empty(), span;
+			for(let i = gainers.length - 1; i >= gainers.length - 3 && i >= 0 && gainers[i][1] > 0; --i) {
+				tbody.append($(document.createElement('tr')).append(
+					$(document.createElement('td')).append(
+						$(document.createElement('small')).addClass('text-muted').text(gainers[i][0])
+					),
+					$(document.createElement('td')).addClass('text-right').append(
+						span = dst_format_currency_gain('EUR', gainers[i][1]) /* XXX */
+					)
+				));
+				if(gainers[i][2]) span.addClass('stale');
+			}
+		}
 	}
 };
 
-const dst_generate_perf_charts = () => dst_chart_perf_account_value = c3.generate({
-	interaction: { enabled: false },
-	transition: { duration: 0 },
-	bindto: 'div#perf-account-value-graph',
-	size: { height: 250 },
-	data: {
-		x: 'x',
-		columns: [],
-		type: 'area',
-		colors: {
-			accountval: 'hsla(200, 100%, 60%, .8)',
+const dst_generate_perf_charts = () => {
+	dst_chart_perf_account_value = c3.generate({
+		interaction: { enabled: false },
+		transition: { duration: 0 },
+		bindto: 'div#perf-account-value-graph',
+		size: { height: 250 },
+		data: {
+			x: 'x',
+			columns: [],
+			type: 'area',
+			colors: {
+				accountval: 'hsla(200, 100%, 60%, .8)',
+			},
 		},
-	},
-	axis: {
-		x: {
-			type: 'timeseries',
-			tick: { format: '%Y-%m-%d' },
+		axis: {
+			x: {
+				type: 'timeseries',
+				tick: { format: '%Y-%m-%d' },
+			},
 		},
-	},
-	legend: { show: false },
-	grid: {
-		x: { show: true },
-		y: { show: true },
-	},
-	area: { zerobased: false },
-	point: { show: false },
-});
+		legend: { show: false },
+		grid: {
+			x: { show: true },
+			y: { show: true },
+		},
+		area: { zerobased: false },
+		point: { show: false },
+	});
+
+	dst_chart_perf_instrument_pnl = c3.generate({
+		interaction: { enabled: false },
+		transition: { duration: 0 },
+		bindto: 'div#perf-instrument-pnl-graph',
+		size: { height: 250 },
+		bar: {
+			width: { ratio: .5 },
+		},
+		data: {
+			columns: [],
+			type: 'bar',
+			groups: [ [ 'profits', 'losses' ] ],
+			colors: {
+				profits: 'hsla(140, 100%, 60%, .8)',
+				losses: 'hsla(20, 100%, 60%, .8)',
+			},
+		},
+		axis: {
+			rotated: true,
+			x: {
+				type: 'category',
+				tick: { multiline: false },
+			}
+		},
+		legend: { show: false },
+		grid: {
+			x: { show: true },
+			y: { show: true },
+		},
+	});
+
+	dst_chart_perf_cumulative_pnl = c3.generate({
+		interaction: { enabled: false },
+		transition: { duration: 0 },
+		bindto: 'div#perf-cumulative-pnl-graph',
+		size: { height: 250 },
+		data: {
+			columns: [],
+			x: 'x',
+			type: 'area',
+			colors: {
+				profits: 'hsla(140, 100%, 60%, .8)',
+				losses: 'hsla(20, 100%, 60%, .8)',
+			},
+		},
+		axis: {
+			x: {
+				type: 'timeseries',
+				tick: { format: '%Y-%m-%d' },
+			},
+		},
+		legend: { show: false },
+		grid: {
+			x: { show: true },
+			y: { show: true },
+		},
+		point: { show: false },
+	});
+
+};
 
 dst_on_load(() => {
 	$("button#perf-date-5y").click(dst_set_perf_range(d => d.setFullYear(d.getFullYear() - 5)));

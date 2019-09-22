@@ -25,7 +25,7 @@
 						<td class="border-top-0 text-right" id="perf-start-value"></td>
 					</tr>
 					<tr><td class="text-muted">Realized P/L</td><td id="perf-realized-pnl" class="text-right"></td></tr>
-					<tr><td class="text-muted">Total P/L</td><td id="perf-pnl" class="text-right"></td></tr>
+					<tr><td class="text-muted">Total P/L</td><td class="perf-pnl text-right"></td></tr>
 					<tr><td class="text-muted">Cash transfers</td><td id="perf-cash-xfers" class="text-right"></td></tr>
 					<tr><td class="text-muted">Account value, <span id="perf-end-date"></span></td><td id="perf-end-value" class="text-right"></td></tr>
 					<tr><td class="text-muted">Change in account value</td><td id="perf-value-delta" class="text-right"></td></tr>
@@ -38,6 +38,35 @@
 				<h6 class="mb-1">Account value</h6>
 			</div>
 			<div id="perf-account-value-graph"></div>
+		</div>
+	</div>
+	<div class="row mt-4">
+		<div class="col-lg-4">
+			<div class="d-flex border-bottom border-secondary">
+				<h6 class="mb-1">Instrument P/L, EUR</h6>
+				<span class="ml-auto perf-pnl"></span>
+			</div>
+			<div id="perf-instrument-pnl-graph"></div>
+		</div>
+		<div class="col-lg-4">
+			<div class="d-flex border-bottom border-secondary">
+				<h6 class="mb-1">Top 3 Gainers</h6>
+			</div>
+			<table class="table table-sm" id="perf-top-gainers">
+				<tbody></tbody>
+			</table>
+			<div class="d-flex border-bottom border-secondary">
+				<h6 class="mb-1">Top 3 Losers</h6>
+			</div>
+			<table class="table table-sm" id="perf-top-losers">
+				<tbody></tbody>
+			</table>
+		</div>
+		<div class="col-lg-4">
+			<div class="d-flex border-bottom border-secondary">
+				<h6 class="mb-1">Cumulative P/L, EUR</h6>
+			</div>
+			<div id="perf-cumulative-pnl-graph"></div>
 		</div>
 	</div>
 </div>

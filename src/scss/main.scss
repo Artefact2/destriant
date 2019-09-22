@@ -46,3 +46,9 @@ td#perf-start-value, td#perf-end-value, td#perf-irr {
 		font-weight: bold;
 	}
 }
+
+table#perf-top-gainers, table#perf-top-losers {
+	&> tbody > tr:first-child > td {
+		border-top: 0;
+	}
+}
