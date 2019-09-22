@@ -97,7 +97,7 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 			losses.push(pnl);
 		}
 		exp.push(pf.total.securities[t].basis + pf.total.securities[t].unrealized);
-		names.push(state.securities[t].name);
+		names.push(state.securities[t].name.substring(0, 50));
 	}
 
 	let chart = c3.generate({
