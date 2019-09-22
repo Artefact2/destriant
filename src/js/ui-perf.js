@@ -31,7 +31,10 @@ const dst_generate_day_range = function*(start, end, inc) {
 		ymd = d.toISOString().split('T')[0];
 
 		yield ymd;
-		if(ymd >= end) {
+		if(ymd == end) {
+			return;
+		} else if(ymd > end) {
+			yield end;
 			return;
 		}
 
