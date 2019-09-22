@@ -54,7 +54,7 @@ dst_on_load(function() {
 		}
 	});
 
-	dst_get_states([ 'accounts', 'settings' ]).then(state => {
+	dst_get_states([ 'accounts', 'securities', 'settings' ]).then(state => {
 		if(state.accounts !== null && state.accounts.length !== 0) {
 			if(location.hash.length < 2 || location.hash === "#welcome") {
 				location.hash = "#pf";
@@ -87,6 +87,10 @@ dst_on_load(function() {
 				s.val("-1");
 			}
 		});
+
+		/* XXX: not very logical for that to be here, but at that point we're sure all the event handlers from dst_on_load() are there */
+		dst_trigger_securities_change(state.securities);
+		dst_trigger_accounts_change(state.accounts);
 
 		$("body > div.p").hide();
 		$("nav a.p-link[data-target='" + location.hash.substring(1) + "']").click();

@@ -144,7 +144,7 @@ dst_on_load(function() {
 			dst_set_state('accounts', state.accounts).then(function() {
 				tr.fadeOut(200, function() {
 					dst_trigger_accounts_change(state.accounts);
-					dst_reload_account_list(state.accounts);
+					dst_reload_account_list(state.accounts); /* XXX: delete in place */
 				});
 			});
 		});
@@ -192,7 +192,7 @@ dst_on_load(function() {
 			}
 
 			dst_set_state('accounts', accounts).then(function() {
-				dst_reload_account_list(accounts);
+				dst_reload_account_list(accounts); /* XXX: update/insert in place */
 				dst_trigger_accounts_change(accounts);
 				modal.modal('hide');
 			});
@@ -203,6 +203,6 @@ dst_on_load(function() {
 	});
 
 	dst_fill_currency_select($("select#acct-editor-acct-ccy"));
-	dst_fetch_and_reload_account_list();
-	dst_trigger_accounts_change();
+
+	$("div#acct-editor").on('dst-load', dst_fetch_and_reload_account_list);
 });

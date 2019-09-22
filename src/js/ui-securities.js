@@ -143,7 +143,7 @@ dst_on_load(function() {
 			}
 
 			dst_set_state('securities', secs).then(function() {
-				dst_reload_securities_list(secs);
+				dst_reload_securities_list(secs); /* XXX: edit/insert in place */
 				dst_trigger_securities_change(secs);
 				modal.modal('hide');
 			});
@@ -207,5 +207,6 @@ dst_on_load(function() {
 
 	dst_fill_currency_select($("select#security-editor-ccy"));
 	dst_fill_exchange_select($("select#security-editor-exchange"));
-	dst_fetch_and_reload_securities_list().then(dst_trigger_securities_change);
+
+	$("div#security-editor").on('dst-load', dst_fetch_and_reload_securities_list);
 });
