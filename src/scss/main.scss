@@ -23,6 +23,7 @@ span.currency-amount {
 		&:after { content: '?'; }
 		&.currency-amount-negative:after { content: '?)'; }
 	}
+	&.to-date:after { content: '*'; }
 }
 
 abbr.rounded-figure {
@@ -51,4 +52,9 @@ table#perf-top-gainers, table#perf-top-losers {
 	&> tbody > tr:first-child > td {
 		border-top: 0;
 	}
+}
+
+table#perf-monthly-pnl tr {
+	td, th { text-align: right; }
+	td:first-child, th:first-child { text-align: left; }
 }

@@ -32,7 +32,10 @@ const dst_generate_day_range = function*(start, end, inc) {
 	while(1) {
 		ymd = d.toISOString().split('T')[0];
 
-		yield ymd;
+		if(ymd <= end) {
+			yield ymd;
+		}
+
 		if(ymd == end) {
 			return;
 		} else if(ymd > end) {
@@ -41,6 +44,38 @@ const dst_generate_day_range = function*(start, end, inc) {
 		}
 
 		d.setDate(d.getDate() + inc);
+	}
+};
+
+const dst_generate_months_range = function*(start, end) {
+	let d = new Date(start);
+	let m = d.getMonth();
+	d.setDate(d.getDate() + 1);
+	if(m === d.getMonth()) {
+		/* start is not last day of a month, jump to last day of previous month */
+		d.setDate(0);
+	} else {
+		d.setDate(d.getDate() - 1);
+	}
+	let ymd;
+
+	while(1) {
+		ymd = d.toISOString().split('T')[0];
+
+		if(ymd <= end) {
+			yield ymd;
+		}
+
+		if(ymd === end) {
+			return;
+		} else if(ymd > end) {
+			yield end;
+			return;
+		}
+
+		d.setDate(d.getDate() + 1);
+		d.setMonth(d.getMonth() + 1);
+		d.setDate(d.getDate() - 1);
 	}
 };
 
@@ -72,7 +107,6 @@ const dst_irr = cashflows => {
 	return m;
 };
 
-const dst_fetch_and_regen_perf = () => dst_get_states([ 'securities', 'accounts', 'transactions', 'prices' ]).then(state => dst_regen_perf(state));
 const dst_regen_perf = state => {
 	let start = $("input#perf-date-start").val();
 	let end = $("input#perf-date-end").val();
@@ -249,6 +283,76 @@ const dst_regen_perf = state => {
 	}
 };
 
+const dst_regen_monthly_pnl = state => {
+	let work = state => {
+		let start, end, ppf = null, monthlypnl = {};
+		let account = parseInt($("select#main-account-selector").val(), 10);
+		if(account === -1 && state.transactions.length > 0) {
+			start = state.transactions[0].date;
+		} else {
+			start = state.transactions.find(tx => tx.id === account);
+		}
+		end = new Date().toISOString().split('T')[0];
+		if(typeof start === 'undefined') start = end;
+		for(let pf of dst_pf(state, { accounts: account === -1 ? null : [ account ] }, dst_generate_months_range(start, end))) {
+			if(ppf === null) {
+				ppf = pf;
+				continue;
+			}
+
+			let pnl = pf.total.realized + pf.total.unrealized - ppf.total.realized - ppf.total.unrealized;
+			if(Math.abs(pnl) < 1e-6) {
+				ppf = pf;
+				continue;
+			}
+
+			let year = pf.date.split('-');
+			let month = parseInt(year[1], 10);
+			year = parseInt(year[0], 10);
+
+			if(!(year in monthlypnl)) monthlypnl[year] = {};
+			monthlypnl[year][month] = [ pnl, pf.total.stale || ppf.total.stale ];
+			ppf = pf;
+		}
+		let tbody = $("table#perf-monthly-pnl tbody").empty();
+		let ty = new Date().toISOString().split('-');
+		let tm = parseInt(ty[1], 10);
+		ty = parseInt(ty[0], 10).toString();
+		for(let y in monthlypnl) {
+			let tr, td, span, stale = false;
+			let s = 0.0;
+			tbody.prepend(tr = $(document.createElement('tr')));
+			tr.append($(document.createElement('td')).append($(document.createElement('small')).text(y)));
+
+			for(let m = 1; m <= 12; ++m) {
+				tr.append(td = $(document.createElement('td')));
+				if(!(m in monthlypnl[y])) continue;
+				td.append($(document.createElement('small')).append(span = dst_format_currency_gain('EUR', monthlypnl[y][m][0]))); /* XXX */
+				if(ty === y && tm === m) {
+					span.addClass('to-date');
+				}
+				if(monthlypnl[y][m][1]) {
+					stale = true;
+					span.addClass('stale');
+				}
+				s += monthlypnl[y][m][0];
+			}
+
+			tr.append($(document.createElement('td')).append(
+				$(document.createElement('small')).append(span = dst_format_currency_gain('EUR', s))
+			)); /* XXX */
+			if(y === ty) span.addClass('to-date');
+			if(stale) span.addClass('stale'); /* XXX: only need dec-31 of prev year and dec-31 of this year to not be stale */
+		}
+	};
+
+	if(typeof state === 'undefined') {
+		return dst_get_state([ 'transactions', 'prices', 'accounts', 'securities' ]).then(state => work(state));
+	} else {
+		return new Promise((resolve, reject) => resolve(work(state)));
+	}
+};
+
 const dst_generate_perf_charts = () => {
 	dst_chart_perf_account_value = c3.generate({
 		interaction: { enabled: false },
@@ -340,10 +444,13 @@ const dst_generate_perf_charts = () => {
 };
 
 dst_on_load(() => {
-	$("div#perf").on('dst-load', dst_fetch_and_regen_perf);
+	$("div#perf").on('dst-load', () => dst_get_states([ 'securities', 'accounts', 'transactions', 'prices' ]).then(state => {
+		dst_regen_perf(state);
+		dst_regen_monthly_pnl(state);
+	}));
 	$("form#perf-date-selector").submit(function(e) {
 		e.preventDefault();
-		dst_mark_stale($("div#perf"));
+		dst_get_states([ 'securities', 'accounts', 'transactions', 'prices' ]).then(state => dst_regen_perf(state));
 	});
 	$("select#main-account-selector").change(() => dst_mark_stale($("div#perf")));
 	dst_on_securities_change(() => dst_mark_stale($("div#perf")));
