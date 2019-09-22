@@ -186,13 +186,7 @@ const dst_pf_apply_tx = (state, pf, tx) => {
 };
 
 const dst_pf_compute_realized = (state, pf, date) => {
-	let d = date === null ? new Date() : new Date(date);
-	let day = d.getDay();
-	/* XXX: not every week day is tradeable, this is also exchange dependent */
-	if(day === 6) d.setDate(d.getDate() - 1); /* saturday */
-	else if(day === 0) d.setDate(d.getDate() - 2); /* sunday */
-	date = d.toISOString().split('T')[0];
-
+	date = dst_lte_trading_day(date).toISOString().split('T')[0];
 	pf.total.unrealized = 0.0;
 	pf.total.stale = false;
 	let pricemap = {};
@@ -212,12 +206,12 @@ const dst_pf_compute_realized = (state, pf, date) => {
 			s.stale = true;
 			pf.total.stale = true;
 			if(state.prices !== null && t in state.prices) {
-				for(let i = 0; i < 4; ++i) { /* XXX */
-					d.setDate(d.getDate() - 1);
-					date = d.toISOString().split('T')[0];
-
-					if(date in state.prices[t]) {
-						s.ltp = state.prices[t][date];
+				let fd = new Date(date), fdate;
+				for(let i = 0; i < 2; ++i) { /* XXX */
+					fd = dst_lte_trading_day(fd);
+					fdate = fd.toISOString().split('T')[0];
+					if(fdate in state.prices[t]) {
+						s.ltp = state.prices[t][fdate];
 						break;
 					}
 				}
@@ -255,36 +249,41 @@ const dst_pf_compute_realized = (state, pf, date) => {
 	}
 };
 
-/* XXX: maybe refactor with dst_pf_compute_realized */
+const dst_lte_trading_day = date => {
+	if(typeof date === 'undefined') {
+		date = new Date();
+	} else if(typeof date === 'string') {
+		date = new Date(date);
+	}
+
+	switch(date.getDay()) {
+	case 0: /* sun */
+		date.setDate(date.getDate() - 2);
+		break;
+	case 6: /* sat */
+		date.setDate(date.getDate() - 1);
+		break;
+	}
+
+	/* XXX */
+	/* http://www.swingbourse.com/bourse-jours-feries.php */
+	switch(date.toISOString().split('T')[0].substring(5)) {
+	case '01-01':
+	case '05-01':
+	case '12-24':
+	case '12-25':
+	case '12-26':
+	case '12-31':
+		date.setDate(date.getDate() - 1);
+		return dst_lte_trading_day(date);
+	}
+
+	/* XXX: easter? */
+	return date;
+};
+
 const dst_two_consecutive_days_gen = function*(date) {
-	let d = date === null ? new Date() : new Date(date);
-	switch(d.getDay()) {
-	case 6: /* saturday */
-		d.setDate(d.getDate() - 2);
-		yield d.toISOString().split('T')[0];
-		d.setDate(d.getDate() + 1);
-		yield d.toISOString().split('T')[0];
-		break;
-
-	case 0: /* sunday */
-		d.setDate(d.getDate() - 3);
-		yield d.toISOString().split('T')[0];
-		d.setDate(d.getDate() + 1);
-		yield d.toISOString().split('T')[0];
-		break;
-
-	case 1: /* monday */
-		d.setDate(d.getDate() - 3);
-		yield d.toISOString().split('T')[0];
-		d.setDate(d.getDate() + 3);
-		yield d.toISOString().split('T')[0];
-		break;
-
-	default:
-		d.setDate(d.getDate() - 1);
-		yield d.toISOString().split('T')[0];
-		d.setDate(d.getDate() + 1);
-		yield d.toISOString().split('T')[0];
-		break;
-	};
+	let d = dst_lte_trading_day(date);
+	yield dst_lte_trading_day(d);
+	yield d;
 };
