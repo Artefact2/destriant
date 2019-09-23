@@ -448,7 +448,11 @@ dst_on_load(() => {
 	$("div#perf").on('dst-load', () => dst_get_states([ 'securities', 'accounts', 'transactions', 'prices' ]).then(state => {
 		dst_regen_perf(state);
 		dst_regen_monthly_pnl(state);
-	}));
+	})).on('dst-show', () => {
+		dst_chart_perf_account_value.flush();
+		dst_chart_perf_instrument_pnl.flush();
+		dst_chart_perf_cumulative_pnl.flush();
+	});
 	$("form#perf-date-selector").submit(function(e) {
 		e.preventDefault();
 		dst_get_states([ 'securities', 'accounts', 'transactions', 'prices' ]).then(state => dst_regen_perf(state));

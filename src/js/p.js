@@ -39,8 +39,9 @@ dst_on_load(function() {
 				start: () => {
 					if(tdiv.hasClass('stale')) {
 						tdiv.removeClass('stale').trigger('dst-load');
+					} else {
+						tdiv.trigger('dst-show');
 					}
-					tdiv.trigger('dst-show');
 				},
 				complete: () => history.replaceState(null, "", "#" + target),
 			});

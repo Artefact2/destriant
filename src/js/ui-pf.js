@@ -185,7 +185,10 @@ dst_on_load(() => {
 	$("td#pf-total-exposure-closed").append(dst_format_currency_amount('EUR', 0.0)); /* XXX */
 	$("td#pf-total-exposure-percent-closed").append(dst_format_percentage(1));
 
-	$("div#pf").on('dst-load', dst_fetch_and_regen_pf_table);
+	$("div#pf").on('dst-load', dst_fetch_and_regen_pf_table).on('dst-show', () => {
+		dst_chart_pf_pnl.flush();
+		dst_chart_pf_exposure.flush();
+	});
 	$("select#main-account-selector").change(() => dst_mark_stale($("div#pf")));
 	$("form#pf-date-select").submit(function(e) {
 		e.preventDefault();
