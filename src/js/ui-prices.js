@@ -215,6 +215,8 @@ dst_on_load(() => {
 	$("button#price-editor-fetch").click(function() {
 		let btn = $(this).prop('disabled', true);
 		dst_get_states([ 'securities', 'prices' ]).then(state => {
+			if(state.prices === null) state.prices = {};
+			if(state.securities === null) state.securities = {};
 			Promise.all(Object.values(state.securities).map(s => dst_fetch_quotes(s).then(quotes => [ s.ticker, quotes ]))).then(prices => {
 				prices.forEach(pdata => {
 					let ticker = pdata[0], quotes = pdata[1];
