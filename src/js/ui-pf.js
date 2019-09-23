@@ -197,29 +197,4 @@ dst_on_load(() => {
 	dst_on_securities_change(() => dst_mark_stale($("div#pf")));
 	dst_on_tx_change(() => dst_mark_stale($("div#pf")));
 	dst_on_prices_change(() => dst_mark_stale($("div#pf")));
-
-	$("button#pf-date-ly").click(() => {
-		let d = new Date();
-		d.setMonth(0);
-		d.setDate(0);
-		$("input#pf-date-select-date").val(d.toISOString().split('T')[0]);
-		$("form#pf-date-select").submit();
-	});
-	$("button#pf-date-lm").click(() => {
-		let d = new Date();
-		d.setDate(0);
-		$("input#pf-date-select-date").val(d.toISOString().split('T')[0]);
-		$("form#pf-date-select").submit();
-	});
-	$("button#pf-date-yesterday").click(() => {
-		let d = new Date();
-		d.setDate(d.getDate() - 1);
-		$("input#pf-date-select-date").val(dst_lte_trading_day(d).toISOString().split('T')[0]);
-		$("form#pf-date-select").submit();
-	});
-	$("button#pf-date-today").click(() => {
-		$("input#pf-date-select-date").val(new Date().toISOString().split('T')[0]);
-		$("form#pf-date-select").submit();
-	});
-	$("input#pf-date-select-date").val(new Date().toISOString().split('T')[0]);
 });

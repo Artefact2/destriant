@@ -1,12 +1,7 @@
 <div class="p container-fluid" id="pf">
-	<form class="form-inline justify-content-end" id="pf-date-select">
-		<div class="btn-group" role="group">
-			<button type="button" class="btn btn-secondary btn-sm" id="pf-date-ly" title="Last year">LY</button>
-			<button type="button" class="btn btn-secondary btn-sm" id="pf-date-lm" title="Last month">LM</button>
-			<button type="button" class="btn btn-secondary btn-sm" id="pf-date-yesterday">Yesterday</button>
-			<button type="button" class="btn btn-secondary btn-sm" id="pf-date-today">Today</button>
-		</div>
-		<input type="date" id="pf-date-select-date" class="form-control form-control-sm ml-4" placeholder="YYYY-MM-DD" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" />
+	<form class="form-inline justify-content-end dst-date-selector" id="pf-date-select">
+		<div class="btn-group" role="group"></div>
+		<input type="date" id="pf-date-select-date" class="dst-date form-control form-control-sm ml-4" placeholder="YYYY-MM-DD" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" />
 		<button type="submit" class="btn btn-primary btn-sm ml-2">Set date</button>
 	</form>
 	<header class="d-flex justify-content-around align-items-center text-center mt-2">

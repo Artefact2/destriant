@@ -17,14 +17,6 @@
 
 let dst_chart_perf_account_value = null, dst_chart_perf_instrument_pnl = null, dst_chart_perf_cumulative_pnl = null;
 
-const dst_set_perf_range = rewind => (() => {
-	let d = new Date();
-	$("input#perf-date-end").val(d.toISOString().split('T')[0]);
-	rewind(d);
-	$("input#perf-date-start").val(d.toISOString().split('T')[0]);
-	$("form#perf-date-selector").submit();
-});
-
 const dst_generate_day_range = function*(start, end, inc) {
 	let d = new Date(start);
 	let ymd;
@@ -462,37 +454,4 @@ dst_on_load(() => {
 	dst_on_securities_change(() => dst_mark_stale($("div#perf")));
 	dst_on_tx_change(() => dst_mark_stale($("div#perf")));
 	dst_on_prices_change(() => dst_mark_stale($("div#perf")));
-
-	$("button#perf-date-5y").click(dst_set_perf_range(d => d.setFullYear(d.getFullYear() - 5)));
-	$("button#perf-date-2y").click(dst_set_perf_range(d => d.setFullYear(d.getFullYear() - 2)));
-	$("button#perf-date-1y").click(dst_set_perf_range(d => d.setFullYear(d.getFullYear() - 1)));
-	$("button#perf-date-6m").click(dst_set_perf_range(d => d.setMonth(d.getMonth() - 6)));
-	$("button#perf-date-3m").click(dst_set_perf_range(d => d.setMonth(d.getMonth() - 3)));
-	$("button#perf-date-ytd").click(dst_set_perf_range(d => { d.setMonth(0); d.setDate(1); }));
-	$("button#perf-date-mtd").click(dst_set_perf_range(d => d.setDate(1)));
-	$("button#perf-date-lm").click(() => {
-		let d = new Date();
-		d.setDate(1);
-		d.setMonth(d.getMonth() - 1);
-		d.setDate(0);
-		$("input#perf-date-start").val(d.toISOString().split('T')[0]);
-		d = new Date();
-		d.setDate(0);
-		$("input#perf-date-end").val(d.toISOString().split('T')[0]);
-		$("form#perf-date-selector").submit();
-	});
-	$("button#perf-date-ly").click(() => {
-		let d = new Date();
-		d.setMonth(0);
-		d.setDate(0);
-		$("input#perf-date-end").val(d.toISOString().split('T')[0]);
-		d.setFullYear(d.getFullYear() - 1);
-		$("input#perf-date-start").val(d.toISOString().split('T')[0]);
-		$("form#perf-date-selector").submit();
-	});
-	let d = new Date();
-	$("input#perf-date-end").val(d.toISOString().split('T')[0]);
-	d.setMonth(0);
-	d.setDate(1);
-	$("input#perf-date-start").val(d.toISOString().split('T')[0]);
 });
