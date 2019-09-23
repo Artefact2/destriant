@@ -36,6 +36,17 @@ const dst_set_states = function(obj) {
 	return Promise.all(Object.keys(obj).map(k => dst_set_state(k, obj[k])));
 };
 
+const dst_load_pf = pf => {
+	console.assert(pf['destriant-version'] === 1);
+	console.assert(!('accounts' in pf) || Array.isArray(pf.accounts));
+	console.assert(!('transactions' in pf) || Array.isArray(pf.transactions));
+	console.assert(!('securities' in pf) || (pf.securities !== null && typeof pf.securities === 'object'));
+	console.assert(!('prices' in pf) || (pf.prices !== null && typeof pf.prices === 'object'));
+	console.assert(!('settings' in pf) || (pf.settings !== null && typeof pf.prices === 'object'));
+	/* XXX: do more thourough validation here, malicious imported data can be harmful */
+	return dst_set_states(pf);
+}
+
 dst_on_load(function() {
 	if(!localforage.supports(localforage.INDEXEDDB)) {
 		console.error('Indexed DB not supported, maximum portfolio size will be impacted');
@@ -73,6 +84,7 @@ dst_on_load(function() {
 
 	$("a#nav-load-pf, button#welcome-import-pf").click(function() {
 		$("div#import-pf-modal form")[0].reset();
+		$("button#import-pf-modal-import").prop('disabled', false);
 		$("div#import-pf-modal").modal('show');
 	});
 	$("button#import-pf-modal-close").click(function() {
@@ -83,22 +95,43 @@ dst_on_load(function() {
 
 		let input = $("div#import-pf-modal input#import-pf-file")[0];
 		if(input.files.length !== 1) return;
+		$("button#import-pf-modal-import").prop('disabled', true);
 
 		$("div#import-pf-modal button#import-pf-modal-import").prop('disabled', true);
 		let r = new FileReader();
 		r.onload = function() {
 			let pf = JSON.parse(r.result);
-			console.assert(pf['destriant-version'] === 1);
-			console.assert(!('accounts' in pf) || Array.isArray(pf.accounts));
-			console.assert(!('transactions' in pf) || Array.isArray(pf.transactions));
-			console.assert(!('securities' in pf) || (pf.securities !== null && typeof pf.securities === 'object'));
-			console.assert(!('prices' in pf) || (pf.prices !== null && typeof pf.prices === 'object'));
-			/* XXX: do more thourough validation here, malicious imported data can be harmful */
-
-			dst_set_states(pf).then(function() {
-				location.reload();
+			dst_load_pf(pf).then(() => {
+				$("div#import-pf-modal").modal('hide');
+				dst_mark_stale($("div.p"));
+				$("a.nav-link[data-target='pf']").click();
 			});
 		};
 		r.readAsText(input.files[0]);
+	});
+	$("button#welcome-import-demo-pf").click(function() {
+		let btn = $(this).prop('disabled', true);
+		dst_get_state('accounts').then(accounts => {
+			if(accounts !== null && accounts.length > 0) {
+				/* XXX: crude, but works */
+				if(prompt("It looks like you already have some accounts set up. \nDo you really want to erase your data? Type uppercase “erase” to proceed.") !== "ERASE") {
+					btn.prop('disabled', false);
+					return;
+				}
+			}
+
+			let text = btn.text();
+			btn.empty().append($(document.createElement('span')).addClass('spinner-border spinner-border-sm'));
+			fetch('demo.json')
+				.then(r => r.json())
+				.then(pf => dst_load_pf(pf))
+				.then(() => dst_get_state('securities'))
+				.then(securities => Promise.all(Object.values(securities).map(s => dst_fetch_quotes(s))))
+				.then(() => {
+					btn.prop('disabled', false).text(text);
+					dst_mark_stale($("div.p"));
+					$("a.nav-link[data-target='pf']").click();
+			});
+		});
 	});
 });
