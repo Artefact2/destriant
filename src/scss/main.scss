@@ -19,11 +19,15 @@ span.currency-amount.currency-amount-negative {
 span.currency-amount {
 	&.currency-gain { color: hsl(140, 100%, 60%); }
 	&.currency-loss { color: hsl(20, 100%, 60%); }
-	&.stale {
-		&:after { content: '?'; }
-		&.currency-amount-negative:after { content: '?)'; }
-	}
+
+	&.stale:after { content: '?'; }
+	&.stale.currency-amount-negative:after { content: '?)'; }
+
 	&.to-date:after { content: '*'; }
+	&.to-date.currency-amount-negative:after { content: ')*'; }
+
+	&.to-date.stale:after { content: '?*'; }
+	&.to-date.stale.currency-amount-negative:after { content: '?)*'; }
 }
 
 abbr.rounded-figure {
