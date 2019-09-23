@@ -455,7 +455,7 @@ dst_on_load(() => {
 	});
 	$("form#perf-date-selector").submit(function(e) {
 		e.preventDefault();
-		dst_get_states([ 'securities', 'accounts', 'transactions', 'prices' ]).then(state => dst_regen_perf(state));
+		dst_mark_stale($("div#perf"));
 	});
 	$("select#main-account-selector").change(() => dst_mark_stale($("div#perf")));
 	dst_on_securities_change(() => dst_mark_stale($("div#perf")));
@@ -467,7 +467,7 @@ dst_on_load(() => {
 	$("button#perf-date-1y").click(dst_set_perf_range(d => d.setFullYear(d.getFullYear() - 1)));
 	$("button#perf-date-6m").click(dst_set_perf_range(d => d.setMonth(d.getMonth() - 6)));
 	$("button#perf-date-3m").click(dst_set_perf_range(d => d.setMonth(d.getMonth() - 3)));
-	$("button#perf-date-ytd").click(dst_set_perf_range(d => { d.setMonth(0); d.setDate(1); })).click();
+	$("button#perf-date-ytd").click(dst_set_perf_range(d => { d.setMonth(0); d.setDate(1); }));
 	$("button#perf-date-mtd").click(dst_set_perf_range(d => d.setDate(1)));
 	$("button#perf-date-lm").click(() => {
 		let d = new Date();
@@ -489,4 +489,9 @@ dst_on_load(() => {
 		$("input#perf-date-start").val(d.toISOString().split('T')[0]);
 		$("form#perf-date-selector").submit();
 	});
+	let d = new Date();
+	$("input#perf-date-end").val(d.toISOString().split('T')[0]);
+	d.setMonth(0);
+	d.setDate(1);
+	$("input#perf-date-start").val(d.toISOString().split('T')[0]);
 });
