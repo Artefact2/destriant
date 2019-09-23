@@ -458,6 +458,7 @@ dst_on_load(() => {
 		dst_mark_stale($("div#perf"));
 	});
 	$("select#main-account-selector").change(() => dst_mark_stale($("div#perf")));
+	dst_on_accounts_change(() => dst_mark_stale($("div#perf")));
 	dst_on_securities_change(() => dst_mark_stale($("div#perf")));
 	dst_on_tx_change(() => dst_mark_stale($("div#perf")));
 	dst_on_prices_change(() => dst_mark_stale($("div#perf")));

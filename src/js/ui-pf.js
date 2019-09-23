@@ -191,8 +191,9 @@ dst_on_load(() => {
 	$("select#main-account-selector").change(() => dst_mark_stale($("div#pf")));
 	$("form#pf-date-select").submit(function(e) {
 		e.preventDefault();
-		dst_mark_stale($("div#pf"));
+		dst_mark_stale($("div#pf")); /* XXX: monthly P/L form doesn't have to be reloaded, possible optimization */
 	});
+	dst_on_accounts_change(() => dst_mark_stale($("div#pf")));
 	dst_on_securities_change(() => dst_mark_stale($("div#pf")));
 	dst_on_tx_change(() => dst_mark_stale($("div#pf")));
 	dst_on_prices_change(() => dst_mark_stale($("div#pf")));
