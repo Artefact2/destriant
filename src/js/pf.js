@@ -49,6 +49,8 @@ const dst_pf = function*(state, filters, dates) {
 
 	let i = 0, imax = state.transactions.length;
 	for(let date of dates) {
+		date = new Date(date).toISOString().split('T')[0];
+
 		while(i < imax) {
 			let tx = state.transactions[i];
 			if(filters.before !== null && tx.date > filters.before) break;
