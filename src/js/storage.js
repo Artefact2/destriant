@@ -120,17 +120,29 @@ dst_on_load(function() {
 				}
 			}
 
+			/* XXX: refactor with ui-prices */
 			dst_set_btn_spinner(btn, 6); /* XXX: 1+(hardcoded number of securities in demo pf) */
 			fetch('demo.json')
 				.then(r => r.json())
 				.then(pf => dst_load_pf(pf))
 				.then(() => dst_get_state('securities'))
-				.then(securities => Promise.all(Object.values(securities).map(s => dst_fetch_quotes(s).then(() => dst_set_btn_spinner_progress(btn, 1)))))
-				.then(() => {
+				.then(securities => Promise.all(Object.values(securities).map(s => dst_fetch_quotes(s).then(quotes => {
+					dst_set_btn_spinner_progress(btn, 1);
+					return [ s.ticker, quotes ];
+				})))).then(newprices => dst_get_state('prices').then(prices => [ prices, newprices ])).then(prices => {
+					prices[1].forEach(pdata => {
+						let ticker = pdata[0], quotes = pdata[1];
+						if(!(ticker in prices[0])) prices[0][ticker] = {};
+						for(let d in quotes) {
+							prices[0][ticker][d] = quotes[d];
+						}
+					});
+					return dst_set_state('prices', prices[0]);
+				}).then(() => {
 					dst_unset_btn_spinner(btn);
 					dst_mark_stale($("div.p"));
 					$("a.nav-link[data-target='pf']").click();
-			});
+				});
 		});
 	});
 });
