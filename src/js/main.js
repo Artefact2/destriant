@@ -75,12 +75,16 @@ const dst_format_percentage_gain = pc => {
 	return sp;
 };
 
-const dst_set_btn_spinner = btn => {
+const dst_set_btn_spinner = (btn, totalprogress) => {
+	if(typeof totalprogress !== 'number') totalprogress = 0;
 	let count = btn.data('spinner-count');
 	if(typeof count !== 'number') {
 		btn.data('spinner-count', 1);
+		btn.data('total-progress', totalprogress);
+		btn.data('current-progress', 0);
 	} else {
 		btn.data('spinner-count', count + 1);
+		btn.data('total-progress', btn.data('total-progress') + totalprogress);
 		return;
 	}
 
@@ -88,6 +92,7 @@ const dst_set_btn_spinner = btn => {
 	btn.width(btn.width()); /* Prevent width change when replacing the contents */
 	btn.prop('disabled', true);
 	btn.empty().append($(document.createElement('span')).addClass('spinner-border spinner-border-sm'));
+	dst_set_btn_spinner_progress(btn, 0);
 };
 
 const dst_unset_btn_spinner = btn => {
@@ -103,7 +108,15 @@ const dst_unset_btn_spinner = btn => {
 	btn.empty().text(btn.data('spinner-text'));
 	btn.prop('disabled', false);
 	btn.width('');
-	btn.removeData([ 'spinner-count', 'spinner-text' ]);
+	btn.css('background', '');
+	btn.removeData([ 'spinner-count', 'spinner-text', 'total-progress', 'current-progress' ]);
+};
+
+const dst_set_btn_spinner_progress = (btn, rel) => {
+	let cp = btn.data('current-progress');
+	btn.data('current-progress', cp = cp + rel);
+	let pc = Math.min(100, Math.max(0, 100 * cp / btn.data('total-progress'))).toString() + '%';
+	btn.css('background', 'linear-gradient(90deg, #00bc8c 0% ' + pc + ', #444 ' + pc + ' 100%)');
 };
 
 dst_on_load((() => $("p#js-warning").remove()));

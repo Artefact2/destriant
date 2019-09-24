@@ -120,13 +120,12 @@ dst_on_load(function() {
 				}
 			}
 
-			let text = btn.text();
-			dst_set_btn_spinner(btn);
+			dst_set_btn_spinner(btn, 6); /* XXX: 1+(hardcoded number of securities in demo pf) */
 			fetch('demo.json')
 				.then(r => r.json())
 				.then(pf => dst_load_pf(pf))
 				.then(() => dst_get_state('securities'))
-				.then(securities => Promise.all(Object.values(securities).map(s => dst_fetch_quotes(s))))
+				.then(securities => Promise.all(Object.values(securities).map(s => dst_fetch_quotes(s).then(() => dst_set_btn_spinner_progress(btn, 1)))))
 				.then(() => {
 					dst_unset_btn_spinner(btn);
 					dst_mark_stale($("div.p"));

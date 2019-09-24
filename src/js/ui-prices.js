@@ -214,11 +214,15 @@ dst_on_load(() => {
 
 	$("button#price-editor-fetch").click(function() {
 		let btn = $(this);
-		dst_set_btn_spinner(btn);
 		dst_get_states([ 'securities', 'prices' ]).then(state => {
 			if(state.prices === null) state.prices = {};
 			if(state.securities === null) state.securities = {};
-			Promise.all(Object.values(state.securities).map(s => dst_fetch_quotes(s).then(quotes => [ s.ticker, quotes ]))).then(prices => {
+			let securities = Object.values(state.securities);
+			dst_set_btn_spinner(btn, securities.length);
+			Promise.all(securities.map(s => dst_fetch_quotes(s).then(quotes => {
+				dst_set_btn_spinner_progress(btn, 1);
+				return [ s.ticker, quotes ];
+			}))).then(prices => {
 				prices.forEach(pdata => {
 					let ticker = pdata[0], quotes = pdata[1];
 					if(!(ticker in state.prices)) state.prices[ticker] = {};
