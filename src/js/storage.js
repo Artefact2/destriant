@@ -121,14 +121,14 @@ dst_on_load(function() {
 			}
 
 			let text = btn.text();
-			btn.empty().append($(document.createElement('span')).addClass('spinner-border spinner-border-sm'));
+			dst_set_btn_spinner(btn);
 			fetch('demo.json')
 				.then(r => r.json())
 				.then(pf => dst_load_pf(pf))
 				.then(() => dst_get_state('securities'))
 				.then(securities => Promise.all(Object.values(securities).map(s => dst_fetch_quotes(s))))
 				.then(() => {
-					btn.prop('disabled', false).text(text);
+					dst_unset_btn_spinner(btn);
 					dst_mark_stale($("div.p"));
 					$("a.nav-link[data-target='pf']").click();
 			});

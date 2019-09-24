@@ -75,4 +75,35 @@ const dst_format_percentage_gain = pc => {
 	return sp;
 };
 
+const dst_set_btn_spinner = btn => {
+	let count = btn.data('spinner-count');
+	if(typeof count !== 'number') {
+		btn.data('spinner-count', 1);
+	} else {
+		btn.data('spinner-count', count + 1);
+		return;
+	}
+
+	btn.data('spinner-text', btn.text()); /* XXX: will not work with embedded children */
+	btn.width(btn.width()); /* Prevent width change when replacing the contents */
+	btn.prop('disabled', true);
+	btn.empty().append($(document.createElement('span')).addClass('spinner-border spinner-border-sm'));
+};
+
+const dst_unset_btn_spinner = btn => {
+	let count = btn.data('spinner-count');
+	if(typeof count !== 'number' || count === 0) {
+		return;
+	}
+	if(count >= 2) {
+		btn.data('spinner-count', count - 1);
+		return;
+	}
+
+	btn.empty().text(btn.data('spinner-text'));
+	btn.prop('disabled', false);
+	btn.width('');
+	btn.removeData([ 'spinner-count', 'spinner-text' ]);
+};
+
 dst_on_load((() => $("p#js-warning").remove()));

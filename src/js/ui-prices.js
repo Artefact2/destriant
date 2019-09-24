@@ -213,7 +213,8 @@ dst_on_load(() => {
 	});
 
 	$("button#price-editor-fetch").click(function() {
-		let btn = $(this).prop('disabled', true);
+		let btn = $(this);
+		dst_set_btn_spinner(btn);
 		dst_get_states([ 'securities', 'prices' ]).then(state => {
 			if(state.prices === null) state.prices = {};
 			if(state.securities === null) state.securities = {};
@@ -229,7 +230,7 @@ dst_on_load(() => {
 				dst_set_state('prices', state.prices).then(() => {
 					dst_reload_price_table(state.prices);
 					dst_trigger_prices_change(state.prices);
-					btn.prop('disabled', false);
+					dst_unset_btn_spinner(btn);
 				});
 			});
 		});
