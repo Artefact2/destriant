@@ -120,6 +120,33 @@ dst_on_load(function() {
 			exchange: modal.find('select#security-editor-exchange').val(),
 		};
 
+		for(let eid of [
+			[ 'type', 'security-editor-exp-asset-class' ],
+			[ 'currency', 'security-editor-exp-currency' ],
+			[ 'country', 'security-editor-exp-country' ],
+			[ 'gics', 'security-editor-exp-gics' ],
+		]) {
+			let input = $("input#" + eid[1]), exp;
+			if(input.val().length === 0) continue;
+			try {
+				exp = JSON.parse(input.val());
+				if(typeof exp !== "object") throw 0;
+				for(let k in exp) {
+					if(typeof exp[k] !== "number") throw 1;
+				}
+			} catch(e) {
+				exp = {};
+				exp[input.val()] = 1.0;
+			} finally {
+				if(!($.isEmptyObject(exp))) {
+					if(!("exposures" in security)) {
+						security.exposures = {};
+					}
+					security.exposures[eid[0]] = exp;
+				}
+			}
+		}
+
 		btn.prop('disabled', true);
 		dst_get_state('securities').then(function(secs) {
 			if(secs === null) secs = {};
@@ -165,6 +192,14 @@ dst_on_load(function() {
 			modal.find('input#security-editor-isin').val(s.isin);
 			modal.find('select#security-editor-ccy').val(s.currency);
 			modal.find('select#security-editor-exchange').val(s.exchange);
+
+			if('exposures' in s) {
+				if('type' in s.exposures) modal.find('input#security-editor-exp-asset-class').val(JSON.stringify(s.exposures.type));
+				if('currency' in s.exposures) modal.find('input#security-editor-exp-currency').val(JSON.stringify(s.exposures.currency));
+				if('country' in s.exposures) modal.find('input#security-editor-exp-country').val(JSON.stringify(s.exposures.country));
+				if('gics' in s.exposures) modal.find('input#security-editor-exp-gics').val(JSON.stringify(s.exposures.gics));
+			}
+
 			modal.data('ticker', s.ticker).modal('show');
 		});
 	}).on('click', 'button.delete-security', function() {
