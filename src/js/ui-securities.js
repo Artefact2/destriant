@@ -34,6 +34,7 @@ const dst_reset_securities_modal = function(modal) {
 	modal.find('input#security-editor-ticker').prop('disabled', false);
 	modal.find('button#security-editor-modal-save').prop('disabled', false);
 	modal.find('form')[0].reset();
+	modal.find('input#security-editor-is-index').change();
 	modal.data('ticker', null);
 };
 
@@ -120,6 +121,10 @@ dst_on_load(function() {
 			exchange: modal.find('select#security-editor-exchange').val(),
 		};
 
+		if($("input#security-editor-is-index").is(':checked')) {
+			security.index = $("select#security-editor-index").val();
+		}
+
 		for(let eid of [
 			[ 'type', 'security-editor-exp-asset-class' ],
 			[ 'currency', 'security-editor-exp-currency' ],
@@ -127,7 +132,7 @@ dst_on_load(function() {
 			[ 'gics', 'security-editor-exp-gics' ],
 		]) {
 			let input = $("input#" + eid[1]), exp;
-			if(input.val().length === 0) continue;
+			if('index' in security || input.val().length === 0) continue;
 			try {
 				exp = JSON.parse(input.val());
 				if(typeof exp !== "object") throw 0;
@@ -193,6 +198,8 @@ dst_on_load(function() {
 			modal.find('select#security-editor-ccy').val(s.currency);
 			modal.find('select#security-editor-exchange').val(s.exchange);
 
+			modal.find('input#security-editor-is-index').prop('checked', 'index' in s).change();
+			if('index' in s) modal.find('select#security-editor-index').val(s.index);
 			if('exposures' in s) {
 				if('type' in s.exposures) modal.find('input#security-editor-exp-asset-class').val(JSON.stringify(s.exposures.type));
 				if('currency' in s.exposures) modal.find('input#security-editor-exp-currency').val(JSON.stringify(s.exposures.currency));
@@ -243,6 +250,25 @@ dst_on_load(function() {
 
 	dst_fill_currency_select($("select#security-editor-ccy"));
 	dst_fill_exchange_select($("select#security-editor-exchange"));
+	dst_on_ext_change(ext => {
+		let select = $("select#security-editor-index").empty();
+		if(ext === null || !("exposures" in ext)) return;
+		for(let k in ext.exposures) {
+			select.append($(document.createElement('option')).prop('value', k).text(k));
+		}
+	});
+
+	$("input#security-editor-is-index").change(function() {
+		let checked = this.checked;
+		let form = $(this).closest('form');
+		if(checked) {
+			form.find('.index-hide').hide();
+			form.find('.index-show').show();
+		} else {
+			form.find('.index-hide').show();
+			form.find('.index-show').hide();
+		}
+	});
 
 	$("div#security-editor").on('dst-load', dst_fetch_and_reload_securities_list);
 });

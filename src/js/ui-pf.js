@@ -19,7 +19,7 @@ let dst_chart_pf_pnl = null, dst_chart_pf_exposure = null;
 let dst_chart_pf_exposure_type = null, dst_chart_pf_exposure_currency = null;
 let dst_chart_pf_exposure_country = null, dst_chart_pf_exposure_gics = null;
 
-const dst_fetch_and_regen_pf_table = () => dst_get_states([ 'accounts', 'securities', 'transactions', 'prices' ]).then(state => {
+const dst_fetch_and_regen_pf_table = () => dst_get_states([ 'accounts', 'securities', 'transactions', 'prices', 'ext' ]).then(state => {
 	let v = parseInt($("select#main-account-selector").val(), 10);
 	let before = $("input#pf-date-select-date").val();
 	let pfgen = dst_pf(state, {
@@ -53,6 +53,10 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 
 		let tr, pc = 100.0 * (s.basis + s.unrealized) / (pf.total.basis + pf.total.unrealized);
 		let security = state.securities[tkr];
+
+		if(state.ext !== null && 'exposures' in state.ext && 'index' in security && security.index in state.ext.exposures) {
+			security.exposures = state.ext.exposures[security.index];
+		}
 
 		for(let etype of [ 'type', 'currency', 'country', 'gics' ]) {
 			if('exposures' in security && etype in security.exposures) {

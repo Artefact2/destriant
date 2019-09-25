@@ -24,6 +24,9 @@ fetch-ext: public/ext/bootstrap.min.css public/ext/bootstrap.bundle.min.js publi
 public/ext:
 	mkdir $@
 
+public/destriant-ext:
+	mkdir $@
+
 public/ext/bootstrap.min.css:
 	make public/ext
 	wget -O $@ "https://bootswatch.com/4/darkly/bootstrap.min.css"
@@ -54,7 +57,11 @@ public/ext/c3.min.css:
 	make public/ext
 	wget -O $@ "https://raw.githubusercontent.com/c3js/c3/v0.7.8/c3.min.css"
 
-host:
+public/destriant-ext/static.json:
+	make public/destriant-ext
+	wget -O $@ "https://artefact2.gitlab.io/destriant-ext/static.json"
+
+host: public/destriant-ext/static.json
 	xdg-open 'http://[::1]:24493' &
 	php -S '[::1]:24493' -t public
 
@@ -62,6 +69,6 @@ clean:
 	rm -f public/destriant.js public/destriant.css
 
 dist-clean: clean
-	rm -Rf public/ext
+	rm -Rf public/ext public/destriant-ext
 
 .PHONY: all fetch-ext host clean dist-clean

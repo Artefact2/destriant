@@ -18,7 +18,7 @@
 /* This script will be last in the append list. This is awkward, but a
  * way of avoiding race conditions with other event handlers */
 
-dst_on_load(() => dst_get_states([ 'accounts', 'securities', 'settings' ]).then(state => {
+dst_on_load(() => dst_get_states([ 'accounts', 'securities', 'settings', 'ext' ]).then(state => {
 	$("body > div.p").hide();
 
 	if(state.accounts !== null && state.accounts.length !== 0) {
@@ -56,5 +56,6 @@ dst_on_load(() => dst_get_states([ 'accounts', 'securities', 'settings' ]).then(
 
 	return dst_trigger_securities_change(state.securities)
 		.then(() => dst_trigger_accounts_change(state.accounts))
+		.then(() => dst_trigger_ext_change(state.ext))
 		.then(() => $("nav a.p-link[data-target='" + location.hash.substring(1) + "']").click());
 }));

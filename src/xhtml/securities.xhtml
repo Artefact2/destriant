@@ -48,19 +48,26 @@
 								<select class="form-control" id="security-editor-exchange"></select>
 							</div>
 						</div>
-						<div class="form-group">
+						<div class="form-check">
+							<input class="form-check-input" type="checkbox" id="security-editor-is-index" />
+							<label class="form-check-label" for="security-editor-is-index">This security follows an index</label>
+						</div>
+						<div class="form-group index-show mt-1">
+							<select class="form-control form-control-sm" id="security-editor-index"></select>
+						</div>
+						<div class="form-group index-hide">
 							<label for="security-editor-exp-asset-class">Asset class exposure (optional)</label>
 							<input type="text" class="form-control form-control-sm" id="security-editor-exp-asset-class" placeholder="{&quot;Equity&quot;:0.7, &quot;Fixed Income&quot;:0.3}" />
 						</div>
-						<div class="form-group">
+						<div class="form-group index-hide">
 							<label for="security-editor-exp-currency">Currency exposure (optional)</label>
 							<input type="text" class="form-control form-control-sm" id="security-editor-exp-currency" placeholder="{&quot;USD&quot;:0.9, &quot;EUR&quot;:0.1}" />
 						</div>
-						<div class="form-group">
+						<div class="form-group index-hide">
 							<label for="security-editor-exp-country">Country exposure (optional)</label>
 							<input type="text" class="form-control form-control-sm" id="security-editor-exp-country" placeholder="{&quot;Germany&quot;:0.5, &quot;France&quot;:0.5}" />
 						</div>
-						<div class="form-group">
+						<div class="form-group index-hide">
 							<label for="security-editor-exp-gics">Sector exposure (optional)</label>
 							<input type="text" class="form-control form-control-sm" id="security-editor-exp-gics" placeholder="{&quot;Energy&quot;:0.4, &quot;Financials&quot;:0.3, &quot;Industrials&quot;:0.3}" />
 						</div>
