@@ -16,6 +16,8 @@
 "use strict";
 
 let dst_chart_pf_pnl = null, dst_chart_pf_exposure = null;
+let dst_chart_pf_exposure_type = null, dst_chart_pf_exposure_currency = null;
+let dst_chart_pf_exposure_country = null, dst_chart_pf_exposure_gics = null;
 
 const dst_fetch_and_regen_pf_table = () => dst_get_states([ 'accounts', 'securities', 'transactions', 'prices' ]).then(state => {
 	let v = parseInt($("select#main-account-selector").val(), 10);
@@ -31,30 +33,52 @@ const dst_fetch_and_regen_pf_table = () => dst_get_states([ 'accounts', 'securit
 const dst_regen_pf_table = (state, pf, pfy) => {
 	let tbody = $("div#pf tbody");
 	let closedpnl = 0.0;
+	let cashpc = 100.0 * pf.total.cash.basis / (pf.total.basis + pf.total.unrealized); /* XXX: will break with mult. cash currencies */
+	let exposures = {
+		type: { 'Cash': cashpc },
+		currency: { 'EUR': cashpc },
+		country: { 'N/A': cashpc },
+		gics: { 'Cash and/or Derivatives': cashpc },
+	};
+
 	tbody.empty();
 	$("dpv#pf .stale").removeClass('stale');
 
 	for(let tkr in pf.total.securities) {
-		let s = pf.total.securities[tkr]
-		let tr;
+		let s = pf.total.securities[tkr];
 		if(Math.abs(s.quantity) < 1e-6){
 			closedpnl += s.realized;
 			continue;
 		}
 
+		let tr, pc = 100.0 * (s.basis + s.unrealized) / (pf.total.basis + pf.total.unrealized);
+		let security = state.securities[tkr];
+
+		for(let etype of [ 'type', 'currency', 'country', 'gics' ]) {
+			if('exposures' in security && etype in security.exposures) {
+				for(let k in security.exposures[etype]) {
+					if(!(k in exposures[etype])) exposures[etype][k] = 0.0;
+					exposures[etype][k] += security.exposures[etype][k] * pc;
+				}
+			} else {
+				if(!("Unknown" in exposures[etype])) exposures[etype].Unknown = 0.0;
+				exposures[etype].Unknown += pc;
+			}
+		}
+
 		tbody.append(tr = $(document.createElement('tr')).append(
 			$(document.createElement('td')).append(
 				$(document.createElement('strong')).text(tkr),
-				', ', state.securities[tkr].name
+				', ', security.name
 			),
 			$(document.createElement('td')).append(dst_format_fixed_amount(s.quantity, 4)),
-			$(document.createElement('td')).append(dst_format_currency_amount(state.securities[tkr].currency, s.basis / s.quantity)),
-			$(document.createElement('td')).append(dst_format_currency_amount(state.securities[tkr].currency, s.ltp)),
+			$(document.createElement('td')).append(dst_format_currency_amount(security.currency, s.basis / s.quantity)),
+			$(document.createElement('td')).append(dst_format_currency_amount(security.currency, s.ltp)),
 			$(document.createElement('td')).append(dst_format_percentage_gain(s.ltp / (s.basis / s.quantity))),
 			$(document.createElement('td')).append(tkr in pfy.total.securities ? dst_format_percentage_gain(s.ltp * s.quantity / (pfy.total.securities[tkr].ltp * pfy.total.securities[tkr].quantity)) : ''),
-			$(document.createElement('td')).append(dst_format_currency_gain(state.securities[tkr].currency, s.realized + s.unrealized)),
-			$(document.createElement('td')).append(dst_format_currency_amount(state.securities[tkr].currency, s.basis + s.unrealized)),
-			$(document.createElement('td')).append((100.0 * (s.basis + s.unrealized) / (pf.total.basis + pf.total.unrealized - pf.total.cash.basis)).toFixed(2) + '%')
+			$(document.createElement('td')).append(dst_format_currency_gain(security.currency, s.realized + s.unrealized)),
+			$(document.createElement('td')).append(dst_format_currency_amount(security.currency, s.basis + s.unrealized)),
+			$(document.createElement('td')).append((100.0 * (s.basis + s.realized) / (pf.total.basis + pf.total.unrealized - pf.total.cash.basis)).toFixed(2) + '%')
 		));
 
 		tr.children('td').slice(1).addClass('text-right');
@@ -83,7 +107,6 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 		$("h4#pf-day-change, h4#pf-day-change-percentage").find('span.currency-amount').addClass('stale');
 	}
 
-	/* XXX: don't regen graphs every time, just update the data? */
 	let profits = [ 'profits' ];
 	let losses = [ 'losses' ];
 	let exp = [ 'exposure' ];
@@ -116,6 +139,31 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 	let height = { height: Math.min(500, (names.length + 1) * 30) };
 	dst_chart_pf_pnl.resize(height);
 	dst_chart_pf_exposure.resize(height);
+
+	for(let edata of [
+		[ 'type', dst_chart_pf_exposure_type ],
+		[ 'currency', dst_chart_pf_exposure_currency ],
+		[ 'country', dst_chart_pf_exposure_country ],
+		[ 'gics', dst_chart_pf_exposure_gics ],
+	]) {
+		let data = Object.keys(exposures[edata[0]]).map(k => [ k, exposures[edata[0]][k] ]).sort((a, b) => {
+			if(a[0] === 'Other') return 1;
+			if(b[0] === 'Other') return -1;
+			return b[1] - a[1];
+		});
+		if(data.length > 8 && data[data.length - 1][0] !== 'Other') {
+			data.push([ 'Other', 0.0 ]) - 1;
+		}
+		for(let z = data.length - 2; z > 7; --z) {
+			data[data.length - 1][1] += data[z][1];
+		}
+		data.splice(7, data.length - 8);
+		edata[1].load({
+			unload: true,
+			columns: [ [ 'exposure' , ...data.map(d => d[1]) ] ],
+			categories: data.map(d => d[0]),
+		});
+	}
 };
 
 const dst_generate_pf_charts = () => {
@@ -177,6 +225,44 @@ const dst_generate_pf_charts = () => {
 			y: { show: true },
 		},
 	});
+
+	let opts = {
+		interaction: { enabled: false },
+		transition: { duration: 0 },
+		size: { height: 200 },
+		bar: {
+			width: { ratio: .5 },
+		},
+		data: {
+			columns: [],
+			type: 'bar',
+			colors: {
+				exposure: 'hsla(200, 100%, 60%, .8)',
+			},
+		},
+		axis: {
+			rotated: true,
+			x: {
+				type: 'category',
+				categories: [],
+				tick: { multiline: false },
+			}
+		},
+		legend: { show: false },
+		grid: {
+			x: { show: true },
+			y: { show: true },
+		},
+	};
+
+	opts.bindto = "div#pf-exposure-type";
+	dst_chart_pf_exposure_type = c3.generate(opts);
+	opts.bindto = "div#pf-exposure-currency";
+	dst_chart_pf_exposure_currency = c3.generate(opts);
+	opts.bindto = "div#pf-exposure-country";
+	dst_chart_pf_exposure_country = c3.generate(opts);
+	opts.bindto = "div#pf-exposure-gics";
+	dst_chart_pf_exposure_gics = c3.generate(opts);
 };
 
 dst_on_load(() => {
