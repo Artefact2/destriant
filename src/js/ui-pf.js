@@ -34,7 +34,7 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 	let tbody = $("div#pf tbody");
 	let closedpnl = 0.0;
 	let cashpc = 100.0 * pf.total.cash.basis / (pf.total.basis + pf.total.unrealized); /* XXX: will break with mult. cash currencies */
-	let showexp = false, exposures = {
+	let showexp = false, warndate = false, exposures = {
 		type: { 'Cash': cashpc },
 		currency: { 'EUR': cashpc },
 		country: { 'N/A': cashpc },
@@ -56,6 +56,7 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 
 		if(state.ext !== null && 'exposures' in state.ext && 'index' in security && security.index in state.ext.exposures) {
 			security.exposures = state.ext.exposures[security.index];
+			warndate = state.ext.date;
 		}
 
 		for(let etype of [ 'type', 'currency', 'country', 'gics' ]) {
@@ -176,6 +177,15 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 				columns: [ [ 'exposure' , ...data.map(d => d[1]) ] ],
 				categories: data.map(d => d[0]),
 			});
+		}
+
+		$("div#pf-exposures p").remove();
+		if(warndate !== false) {
+			$("div#pf-exposures").append(
+				$(document.createElement('p')).addClass('col-12').append(
+					$(document.createElement('small')).addClass('text-muted').text('*Exposure data is indicative. *As of ' + warndate + '.')
+				)
+			);
 		}
 	} else {
 		$("div#pf-exposures").hide();
