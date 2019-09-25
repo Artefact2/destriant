@@ -34,7 +34,7 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 	let tbody = $("div#pf tbody");
 	let closedpnl = 0.0;
 	let cashpc = 100.0 * pf.total.cash.basis / (pf.total.basis + pf.total.unrealized); /* XXX: will break with mult. cash currencies */
-	let exposures = {
+	let showexp = false, exposures = {
 		type: { 'Cash': cashpc },
 		currency: { 'EUR': cashpc },
 		country: { 'N/A': cashpc },
@@ -59,6 +59,7 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 				for(let k in security.exposures[etype]) {
 					if(!(k in exposures[etype])) exposures[etype][k] = 0.0;
 					exposures[etype][k] += security.exposures[etype][k] * pc;
+					showexp = true;
 				}
 			} else {
 				if(!("Unknown" in exposures[etype])) exposures[etype].Unknown = 0.0;
@@ -126,43 +127,54 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 	}
 
 	if(dst_chart_pf_pnl === null) dst_generate_pf_charts();
-	dst_chart_pf_pnl.load({
-		unload: true,
-		columns: [ profits, losses ],
-		categories: names,
-	});
-	dst_chart_pf_exposure.load({
-		unload: true,
-		columns: [ exp ],
-		categories: names,
-	});
-	let height = { height: Math.min(500, (names.length + 1) * 30) };
-	dst_chart_pf_pnl.resize(height);
-	dst_chart_pf_exposure.resize(height);
 
-	for(let edata of [
-		[ 'type', dst_chart_pf_exposure_type ],
-		[ 'currency', dst_chart_pf_exposure_currency ],
-		[ 'country', dst_chart_pf_exposure_country ],
-		[ 'gics', dst_chart_pf_exposure_gics ],
-	]) {
-		let data = Object.keys(exposures[edata[0]]).map(k => [ k, exposures[edata[0]][k] ]).sort((a, b) => {
-			if(a[0] === 'Other') return 1;
-			if(b[0] === 'Other') return -1;
-			return b[1] - a[1];
-		});
-		if(data.length > 8 && data[data.length - 1][0] !== 'Other') {
-			data.push([ 'Other', 0.0 ]) - 1;
-		}
-		for(let z = data.length - 2; z > 7; --z) {
-			data[data.length - 1][1] += data[z][1];
-		}
-		data.splice(7, data.length - 8);
-		edata[1].load({
+	if(names.length > 0) {
+		$("div#pf-securities").show();
+		dst_chart_pf_pnl.load({
 			unload: true,
-			columns: [ [ 'exposure' , ...data.map(d => d[1]) ] ],
-			categories: data.map(d => d[0]),
+			columns: [ profits, losses ],
+			categories: names,
 		});
+		dst_chart_pf_exposure.load({
+			unload: true,
+			columns: [ exp ],
+			categories: names,
+		});
+		let height = { height: Math.min(500, (names.length + 1) * 30) };
+		dst_chart_pf_pnl.resize(height);
+		dst_chart_pf_exposure.resize(height);
+	} else {
+		$("div#pf-securities").hide();
+	}
+
+	if(showexp) {
+		$("div#pf-exposures").show();
+		for(let edata of [
+			[ 'type', dst_chart_pf_exposure_type ],
+			[ 'currency', dst_chart_pf_exposure_currency ],
+			[ 'country', dst_chart_pf_exposure_country ],
+			[ 'gics', dst_chart_pf_exposure_gics ],
+		]) {
+			let data = Object.keys(exposures[edata[0]]).map(k => [ k, exposures[edata[0]][k] ]).sort((a, b) => {
+				if(a[0] === 'Other') return 1;
+				if(b[0] === 'Other') return -1;
+				return b[1] - a[1];
+			});
+			if(data.length > 8 && data[data.length - 1][0] !== 'Other') {
+				data.push([ 'Other', 0.0 ]) - 1;
+			}
+			for(let z = data.length - 2; z > 7; --z) {
+				data[data.length - 1][1] += data[z][1];
+			}
+			data.splice(7, data.length - 8);
+			edata[1].load({
+				unload: true,
+				columns: [ [ 'exposure' , ...data.map(d => d[1]) ] ],
+				categories: data.map(d => d[0]),
+			});
+		}
+	} else {
+		$("div#pf-exposures").hide();
 	}
 };
 
