@@ -43,7 +43,7 @@ dst_on_load(() => dst_get_states([ 'accounts', 'securities', 'settings', 'ext' ]
 			dst_set_state('settings', settings);
 		});
 	});
-	dst_on_accounts_change(accounts => {
+	dst_on_state_change('accounts', accounts => {
 		let s = $("select#main-account-selector");
 		let v = s.val();
 		dst_fill_account_select(s, accounts);
@@ -54,8 +54,9 @@ dst_on_load(() => dst_get_states([ 'accounts', 'securities', 'settings', 'ext' ]
 		}
 	});
 
-	return dst_trigger_securities_change(state.securities)
-		.then(() => dst_trigger_accounts_change(state.accounts))
-		.then(() => dst_trigger_ext_change(state.ext))
-		.then(() => $("nav a.p-link[data-target='" + location.hash.substring(1) + "']").click());
+	return Promise.all([
+		dst_trigger_state_change('securities', state.securities),
+		dst_trigger_state_change('accounts', state.accounts),
+		dst_trigger_state_change('ext', state.ext),
+	]).then(() => $("nav a.p-link[data-target='" + location.hash.substring(1) + "']").click());
 }));

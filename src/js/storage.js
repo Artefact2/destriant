@@ -15,6 +15,26 @@
 
 "use strict";
 
+const dst_on_state_change_funcs = {};
+const dst_on_state_change = (k, f) => {
+	if($.isArray(k)) {
+		return k.forEach(subk => dst_on_state_change(subk, f));
+	}
+
+	if(!(k in dst_on_state_change_funcs)) dst_on_state_change_funcs[k] = [];
+	return dst_on_state_change_funcs[k].push(f);
+};
+const dst_trigger_state_change = (k, s) => {
+	if(!(k in dst_on_state_change_funcs)) return new Promise((resolve, reject) => resolve());
+	let work = s => dst_on_state_change_funcs[k].forEach(f => f(s));
+
+	if(typeof s === 'undefined') {
+		return dst_get_state(k).then(s => work(s));
+	} else {
+		return new Promise((resolve, reject) => resolve(work(s)));
+	}
+};
+
 const dst_get_state = function(key) {
 	/* XXX: better error handling */
 	return localforage.getItem(key).catch(err => console.error(key, err));

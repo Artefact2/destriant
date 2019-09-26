@@ -15,18 +15,6 @@
 
 "use strict";
 
-const dst_on_tx_change_funcs = [];
-const dst_on_tx_change = f => dst_on_tx_change_funcs.push(f);
-const dst_trigger_tx_change = transactions => {
-	let work = txs => dst_on_tx_change_funcs.forEach(f => f(txs));
-
-	if(typeof transactions === 'undefined') {
-		return dst_get_state('transactions').then(txs => work(txs));
-	} else {
-		return new Promise((resolve, reject) => resolve(work(transactions)));
-	}
-};
-
 const dst_reset_tx_modal = function(modal) {
 	modal.find('.modal-title').text('Input transaction');
 	modal.find("button#tx-editor-modal-save").prop('disabled', false);
@@ -300,7 +288,7 @@ dst_on_load(function() {
 				}
 				tbody.children('tr.placeholder').remove();
 				modal.modal('hide');
-				dst_trigger_tx_change(state.transactions);
+				dst_trigger_state_change('txs', state.transactions);
 			});
 		});
 	});
@@ -316,7 +304,7 @@ dst_on_load(function() {
 			txs.splice(txs.findIndex(tx => tx.id === tr.data('id')), 1);
 			dst_set_state('transactions', txs).then(function() {
 				tr.fadeOut(200, () => tr.remove());
-				dst_trigger_tx_change(txs);
+				dst_trigger_state_change('txs', txs);
 			});
 		});
 	}).on('click', 'button.edit-tx', function() {
@@ -362,8 +350,8 @@ dst_on_load(function() {
 		dst_mark_stale($("div#tx-editor"));
 	});
 
-	dst_on_securities_change(securities => dst_fill_security_select($("select#tx-editor-security, select#tx-editor-filter-security"), securities));
-	dst_on_accounts_change(accounts => {
+	dst_on_state_change('securities', securities => dst_fill_security_select($("select#tx-editor-security, select#tx-editor-filter-security"), securities));
+	dst_on_state_change('accounts', accounts => {
 		dst_fill_account_select($("select#tx-editor-account, select#tx-editor-filter-account"), accounts);
 		dst_mark_stale($("div#tx-editor"));
 	});

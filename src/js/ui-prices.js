@@ -15,18 +15,6 @@
 
 "use strict";
 
-const dst_on_prices_change_funcs = [];
-const dst_on_prices_change = f => dst_on_prices_change_funcs.push(f);
-const dst_trigger_prices_change = prices => {
-	let work = prices => dst_on_prices_change_funcs.forEach(f => f(prices));
-
-	if(typeof prices === 'undefined') {
-		return dst_get_state('prices').then(prices => work(prices));
-	} else {
-		return new Promise((resolve, reject) => resolve(work(prices)));
-	}
-};
-
 const dst_reset_price_modal = modal => {
 	modal.find('.modal-title').text('Input security price');
 	modal.find("button#price-editor-modal-save").prop('disabled', false);
@@ -101,7 +89,7 @@ const dst_import_prices = (text, fmt, ticker) => dst_get_state('prices').then(pr
 	return prices;
 }).then(prices => {
 	dst_set_state('prices', prices);
-	dst_trigger_prices_change(prices);
+	dst_trigger_state_change('prices', prices);
 	return prices;
 });
 
@@ -171,7 +159,7 @@ dst_on_load(() => {
 				}
 
 				$("div#price-editor-modal").modal('hide');
-				dst_trigger_prices_change(prices);
+				dst_trigger_state_change('prices', prices);
 			});
 		});
 	});
@@ -193,7 +181,7 @@ dst_on_load(() => {
 				if($.isEmptyObject(prices)) {
 					dst_reload_price_table(prices);
 				}
-				dst_trigger_prices_change(prices);
+				dst_trigger_state_change('prices', prices);
 			}));
 		});
 	}).on('click', 'button.edit-price', function() {
@@ -233,7 +221,7 @@ dst_on_load(() => {
 
 				dst_set_state('prices', state.prices).then(() => {
 					dst_reload_price_table(state.prices);
-					dst_trigger_prices_change(state.prices);
+					dst_trigger_state_change('prices', state.prices);
 					dst_unset_btn_spinner(btn);
 				});
 			});
@@ -286,7 +274,7 @@ dst_on_load(() => {
 		dst_mark_stale($("div#price-editor"));
 	});
 
-	dst_on_securities_change(securities => dst_fill_security_select(
+	dst_on_state_change('securities', securities => dst_fill_security_select(
 		$("select#price-editor-security, select#price-editor-filter-security, select#price-editor-import-security"),
 		securities
 	));

@@ -15,18 +15,6 @@
 
 "use strict";
 
-const dst_on_securities_change_funcs = [];
-const dst_on_securities_change = f => dst_on_securities_change_funcs.push(f);
-const dst_trigger_securities_change = securities => {
-	let work = securities => dst_on_securities_change_funcs.forEach(f => f(securities));
-
-	if(typeof securities === 'undefined') {
-		return dst_get_state('securities').then(securities => work(securities));
-	} else {
-		return new Promise((resolve, reject) => resolve(work(securities)));
-	}
-};
-
 const dst_reset_securities_modal = function(modal) {
 	modal.find('.modal-title').text('New security');
 	modal.find('.is-invalid').removeClass('is-invalid');
@@ -177,7 +165,7 @@ dst_on_load(function() {
 
 			dst_set_state('securities', secs).then(function() {
 				dst_reload_securities_list(secs); /* XXX: edit/insert in place */
-				dst_trigger_securities_change(secs);
+				dst_trigger_state_change('securities', secs);
 				modal.modal('hide');
 			});
 		});
@@ -242,7 +230,7 @@ dst_on_load(function() {
 					if($.isEmptyObject(state.securities)) {
 						dst_reload_securities_list(state.securities);
 					}
-					dst_trigger_securities_change(state.securities);
+					dst_trigger_state_change('securities', state.securities);
 				});
 			});
 		});
@@ -250,7 +238,7 @@ dst_on_load(function() {
 
 	dst_fill_currency_select($("select#security-editor-ccy"));
 	dst_fill_exchange_select($("select#security-editor-exchange"));
-	dst_on_ext_change(ext => {
+	dst_on_state_change('ext', ext => {
 		let select = $("select#security-editor-index").empty();
 		if(ext === null || !("exposures" in ext)) return;
 		for(let k in ext.exposures) {

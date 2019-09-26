@@ -15,18 +15,6 @@
 
 "use strict";
 
-const dst_on_accounts_change_funcs = [];
-const dst_on_accounts_change = f => dst_on_accounts_change_funcs.push(f);
-const dst_trigger_accounts_change = accounts => {
-	let work = accounts => dst_on_accounts_change_funcs.forEach(f => f(accounts));
-
-	if(typeof accounts === 'undefined') {
-		return dst_get_state('accounts').then(accounts => work(accounts));
-	} else {
-		return new Promise((resolve, reject) => resolve(work(accounts)));
-	}
-};
-
 const dst_fetch_and_reload_account_list = function() {
 	let tbody = $("div#acct-editor tbody");
 	tbody.empty();
@@ -143,7 +131,7 @@ dst_on_load(function() {
 			state.accounts.splice(tr.data('idx'), 1);
 			dst_set_state('accounts', state.accounts).then(function() {
 				tr.fadeOut(200, function() {
-					dst_trigger_accounts_change(state.accounts);
+					dst_trigger_state_change('accounts', state.accounts);
 					dst_reload_account_list(state.accounts); /* XXX: delete in place */
 				});
 			});
@@ -195,7 +183,7 @@ dst_on_load(function() {
 
 			dst_set_state('accounts', accounts).then(function() {
 				dst_reload_account_list(accounts); /* XXX: update/insert in place */
-				dst_trigger_accounts_change(accounts);
+				dst_trigger_state_change('accounts', accounts);
 				modal.modal('hide');
 			});
 		});

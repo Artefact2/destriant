@@ -15,18 +15,6 @@
 
 "use strict";
 
-const dst_on_ext_change_funcs = [];
-const dst_on_ext_change = f => dst_on_ext_change_funcs.push(f);
-const dst_trigger_ext_change = ext => {
-	let work = ext => dst_on_ext_change_funcs.forEach(f => f(ext));
-
-	if(typeof ext === 'undefined') {
-		return dst_get_state('ext').then(ext => work(ext));
-	} else {
-		return new Promise((resolve, reject) => resolve(work(ext)));
-	}
-};
-
 const dst_fetch_ext = fetch('/destriant-ext/static.json')
 	  .catch(console.error)
 	  .then(r => r.json())
@@ -35,7 +23,7 @@ const dst_fetch_ext = fetch('/destriant-ext/static.json')
 		  if(exts[0] !== null && "date" in exts[0] && exts[0].date === exts[1].date) {
 			  return new Promise((resolve, reject) => resolve(exts[0]));
 		  } else {
-			  return dst_set_state('ext', exts[1]).then(() => dst_trigger_ext_change(exts[1]).then(() => exts[1]));
+			  return dst_set_state('ext', exts[1]).then(() => dst_trigger_state_change('ext', exts[1]).then(() => exts[1]));
 		  }
 	  });
 

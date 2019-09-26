@@ -305,8 +305,5 @@ dst_on_load(() => {
 		e.preventDefault();
 		dst_mark_stale($("div#pf")); /* XXX: monthly P/L form doesn't have to be reloaded, possible optimization */
 	});
-	dst_on_accounts_change(() => dst_mark_stale($("div#pf")));
-	dst_on_securities_change(() => dst_mark_stale($("div#pf")));
-	dst_on_tx_change(() => dst_mark_stale($("div#pf")));
-	dst_on_prices_change(() => dst_mark_stale($("div#pf")));
+	dst_on_state_change([ 'accounts', 'securities', 'txs', 'prices', 'ext' ], () => dst_mark_stale($("div#pf")));
 });
