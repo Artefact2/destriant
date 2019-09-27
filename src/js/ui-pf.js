@@ -97,7 +97,7 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 	$("td#pf-total-pnl-closed").empty().append(dst_format_currency_gain('EUR', closedpnl)); /* XXX */
 
 	let daypnl = pf.total.realized + pf.total.unrealized - pfy.total.realized - pfy.total.unrealized;
-	let daypnlp = (pf.total.basis + pf.total.unrealized) / (pfy.total.basis + pfy.total.unrealized);
+	let daypnlp = 1 + daypnl / (pfy.total.basis + pfy.total.unrealized);
 	$("h4#pf-day-change").empty().append(dst_format_currency_gain('EUR', daypnl)); /* XXX */
 	$("h4#pf-day-change-percentage").empty().append(dst_format_percentage_gain(daypnlp));
 
