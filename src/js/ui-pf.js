@@ -81,7 +81,7 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 			$(document.createElement('td')).append(dst_format_currency_amount(security.currency, s.basis / s.quantity)),
 			$(document.createElement('td')).append(dst_format_currency_amount(security.currency, s.ltp)),
 			$(document.createElement('td')).append(dst_format_percentage_gain(s.ltp / (s.basis / s.quantity))),
-			$(document.createElement('td')).append(tkr in pfy.total.securities ? dst_format_percentage_gain(s.ltp * s.quantity / (pfy.total.securities[tkr].ltp * pfy.total.securities[tkr].quantity)) : ''),
+			$(document.createElement('td')).append((tkr in pfy.total.securities && pfy.total.securities[tkr].quantity > 1e-6) ? dst_format_percentage_gain(s.ltp / pfy.total.securities[tkr].ltp) : ''), /* XXX: will break at splits */
 			$(document.createElement('td')).append(dst_format_currency_gain(security.currency, s.realized + s.unrealized)),
 			$(document.createElement('td')).append(dst_format_currency_amount(security.currency, s.basis + s.unrealized)),
 			$(document.createElement('td')).append((100.0 * (s.basis + s.realized) / (pf.total.basis + pf.total.unrealized - pf.total.cash.basis)).toFixed(2) + '%')
