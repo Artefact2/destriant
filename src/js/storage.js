@@ -64,7 +64,13 @@ const dst_load_pf = pf => {
 	console.assert(!('prices' in pf) || (pf.prices !== null && typeof pf.prices === 'object'));
 	console.assert(!('settings' in pf) || (pf.settings !== null && typeof pf.prices === 'object'));
 	/* XXX: do more thourough validation here, malicious imported data can be harmful */
-	return dst_set_states(pf);
+	return dst_set_states(pf).then(Promise.all([
+		dst_trigger_state_change('accounts', pf.accounts),
+		dst_trigger_state_change('securities', pf.securities),
+		dst_trigger_state_change('txs', pf.transactions),
+		dst_trigger_state_change('prices', pf.prices),
+		dst_trigger_state_change('settings', pf.settings),
+	]));
 }
 
 dst_on_load(function() {
@@ -157,7 +163,7 @@ dst_on_load(function() {
 							prices[0][ticker][d] = quotes[d];
 						}
 					});
-					return dst_set_state('prices', prices[0]);
+					return dst_set_state('prices', prices[0]).then(() => dst_trigger_state_change('prices', prices[0]));
 				}).then(() => {
 					dst_unset_btn_spinner(btn);
 					dst_mark_stale($("div.p"));
