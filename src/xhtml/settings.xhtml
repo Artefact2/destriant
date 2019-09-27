@@ -1,0 +1,41 @@
+<div class="container p" id="settings">
+	<h1>Settings</h1>
+	<form>
+		<div class="form-group row">
+			<label class="col-form-label col-md-3"  for="settings-main-currency">Main currency</label>
+			<div class="col-md-9">
+				<select class="form-control" id="settings-main-currency" disabled="disabled">
+					<option value="EUR" selected="selected">EUR, Euro</option>
+				</select>
+				<small class="form-text text-muted">Used for “All accounts” summaries.</small>
+			</div>
+		</div>
+		<div class="form-group row mt-4">
+			<label class="col-form-label col-md-3" for="settings-auto-quotes">Automatic price updates</label>
+			<div class="col-md-9">
+				<input class="form-check-input" type="checkbox" id="settings-auto-quotes" />
+				<label class="form-check-label" for="settings-auto-quotes">Fetch online prices automatically in the background</label>
+				<div class="row mt-2">
+					<div class="col-md-4">
+						<label for="settings-auto-quotes-frequency">Polling frequency (mins, 15-120)</label>
+						<input id="settings-auto-quotes-frequency" class="form-control only-auto-quotes" type="number" min="15" max="120" step="1" />
+					</div>
+					<div class="col-md-4">
+						<label for="settings-auto-quotes-after">Not before</label>
+						<input id="settings-auto-quotes-after" class="form-control only-auto-quotes" type="time" />
+					</div>
+					<div class="col-md-4">
+						<label for="settings-auto-quotes-before">Not after</label>
+						<input id="settings-auto-quotes-before" class="form-control only-auto-quotes" type="time" />
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="form-group row mt-4">
+			<div class="col-md-3"></div>
+			<div class="col-md-9">
+				<button type="submit" class="btn btn-primary" id="settings-save">Save settings</button>
+			</div>
+		</div>
+	</form>
+</div>

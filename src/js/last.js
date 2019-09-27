@@ -57,6 +57,7 @@ dst_on_load(() => dst_get_states([ 'accounts', 'securities', 'settings', 'ext' ]
 	return Promise.all([
 		dst_trigger_state_change('securities', state.securities),
 		dst_trigger_state_change('accounts', state.accounts),
+		dst_trigger_state_change('settings', state.settings),
 		dst_trigger_state_change('ext', state.ext),
 	]).then(() => $("nav a.p-link[data-target='" + location.hash.substring(1) + "']").click());
 }));

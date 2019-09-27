@@ -15,6 +15,40 @@
 
 "use strict";
 
+let dst_auto_fetch_prices_timeout = null;
+const dst_auto_fetch_prices = () => dst_get_state('settings').then(settings => {
+	dst_auto_fetch_prices_timeout = null;
+	if(settings === null) return;
+	if(!('auto-quotes' in settings) || !settings['auto-quotes']) return;
+
+	let last = ('auto-quotes-last' in settings) ? settings['auto-quotes-last'] : 0;
+	let ival = 60000 * settings['auto-quotes-frequency'];
+	let next = last + ival;
+	let cur = new Date().getTime();
+
+	if(cur < next) {
+		dst_auto_fetch_prices_timeout = setTimeout(dst_auto_fetch_prices, next - cur + 1000);
+	} else {
+		settings['auto-quotes-last'] = cur;
+		dst_set_state('settings', settings).then(() => {
+			dst_auto_fetch_prices_timeout = setTimeout(dst_auto_fetch_prices, ival);
+			let d = new Date();
+			if(d.getDay() === 0 || d.getDay() === 6) return;
+			if('auto-quotes-before' in settings) {
+				let before = settings['auto-quotes-before'].split(':').map(s => parseInt(s, 10));
+				if(d.getHours() > before[0]) return;
+				if(d.getHours() === before[0] && d.getMinutes() > before[1]) return;
+			}
+			if('auto-quotes-after' in settings) {
+				let after = settings['auto-quotes-after'].split(':').map(s => parseInt(s, 10));
+				if(d.getHours() < after[0]) return;
+				if(d.getHours() === after[0] && d.getMinutes() < after[1]) return;
+			}
+			$('button#price-editor-fetch').click();
+		});
+	}
+});
+
 const dst_reset_price_modal = modal => {
 	modal.find('.modal-title').text('Input security price');
 	modal.find("button#price-editor-modal-save").prop('disabled', false);
@@ -280,4 +314,13 @@ dst_on_load(() => {
 	));
 
 	$("div#price-editor").on('dst-load', dst_fetch_and_reload_price_table);
+
+	dst_on_state_change('settings', settings => {
+		if(settings !== null && 'auto-quotes' in settings && settings['auto-quotes']) {
+			dst_auto_fetch_prices();
+		} else {
+			clearTimeout(dst_auto_fetch_prices_timeout);
+			dst_auto_fetch_prices_timeout = null;
+		}
+	});
 });
