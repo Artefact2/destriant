@@ -177,7 +177,7 @@ const dst_regen_perf = state => {
 	let categories = [];
 	let gainers = [];
 
-	for(let t in epf.total.securities) {
+	for(let t of dst_sorted_pf_securities(epf, state.securities, state.settings)) {
 		let pnl = epf.total.securities[t].realized + epf.total.securities[t].closed + epf.total.securities[t].unrealized;
 		if(t in spf.total.securities) {
 			pnl -= spf.total.securities[t].realized + spf.total.securities[t].closed + spf.total.securities[t].unrealized;
@@ -437,7 +437,7 @@ const dst_generate_perf_charts = () => {
 };
 
 dst_on_load(() => {
-	$("div#perf").on('dst-load', () => dst_get_states([ 'securities', 'accounts', 'transactions', 'prices' ]).then(state => {
+	$("div#perf").on('dst-load', () => dst_get_states([ 'securities', 'accounts', 'transactions', 'prices', 'settings' ]).then(state => {
 		dst_regen_perf(state);
 		dst_regen_monthly_pnl(state);
 	})).on('dst-show', () => {
@@ -450,5 +450,5 @@ dst_on_load(() => {
 		dst_mark_stale($("div#perf"));
 	});
 	$("select#main-account-selector").change(() => dst_mark_stale($("div#perf")));
-	dst_on_state_change([ 'accounts', 'securities', 'txs', 'prices' ], () => dst_mark_stale($("div#perf")));
+	dst_on_state_change([ 'accounts', 'securities', 'txs', 'prices', 'settings' ], () => dst_mark_stale($("div#perf")));
 });

@@ -19,7 +19,7 @@ let dst_chart_pf_pnl = null, dst_chart_pf_exposure = null;
 let dst_chart_pf_exposure_type = null, dst_chart_pf_exposure_currency = null;
 let dst_chart_pf_exposure_country = null, dst_chart_pf_exposure_gics = null;
 
-const dst_fetch_and_regen_pf_table = () => dst_get_states([ 'accounts', 'securities', 'transactions', 'prices', 'ext' ]).then(state => {
+const dst_fetch_and_regen_pf_table = () => dst_get_states([ 'accounts', 'securities', 'transactions', 'prices', 'ext', 'settings' ]).then(state => {
 	let v = parseInt($("select#main-account-selector").val(), 10);
 	let before = $("input#pf-date-select-date").val();
 	let pfgen = dst_pf(state, {
@@ -39,11 +39,15 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 		country: { 'N/A': cashpc },
 		gics: { 'Cash and/or Derivatives': cashpc },
 	};
+	let profits = [ 'profits' ];
+	let losses = [ 'losses' ];
+	let exp = [ 'exposure' ];
+	let names = [];
 
 	tbody.empty();
 	$("dpv#pf .stale").removeClass('stale');
 
-	for(let tkr in pf.total.securities) {
+	for(let tkr of dst_sorted_pf_securities(pf, state.securities, state.settings)) {
 		let s = pf.total.securities[tkr];
 		if(Math.abs(s.quantity) < 1e-6){
 			continue;
@@ -51,6 +55,18 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 
 		let tr, pc = 100.0 * (s.basis + s.unrealized) / (pf.total.basis + pf.total.unrealized);
 		let security = state.securities[tkr];
+		let pnl = s.realized + s.unrealized;
+		let exposure = s.basis + s.unrealized;
+
+		if(pnl >= 0) {
+			profits.push(pnl);
+			losses.push(0);
+		} else {
+			profits.push(0);
+			losses.push(pnl);
+		}
+		exp.push(exposure);
+		names.push(security.name.substring(0, 50));
 
 		if(state.ext !== null && 'exposures' in state.ext && 'index' in security && security.index in state.ext.exposures) {
 			security.exposures = state.ext.exposures[security.index];
@@ -80,9 +96,9 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 			$(document.createElement('td')).append(dst_format_currency_amount(security.currency, s.ltp)),
 			$(document.createElement('td')).append(dst_format_percentage_gain(s.ltp / (s.basis / s.quantity))),
 			$(document.createElement('td')).append((tkr in pfy.total.securities && pfy.total.securities[tkr].quantity > 1e-6) ? dst_format_percentage_gain(s.ltp / pfy.total.securities[tkr].ltp) : ''), /* XXX: will break at splits */
-			$(document.createElement('td')).append(dst_format_currency_gain(security.currency, s.realized + s.unrealized)),
-			$(document.createElement('td')).append(dst_format_currency_amount(security.currency, s.basis + s.unrealized)),
-			$(document.createElement('td')).append((100.0 * (s.basis + s.unrealized) / (pf.total.basis + pf.total.unrealized - pf.total.cash.basis)).toFixed(2) + '%')
+			$(document.createElement('td')).append(dst_format_currency_gain(security.currency, pnl)),
+			$(document.createElement('td')).append(dst_format_currency_amount(security.currency, exposure)),
+			$(document.createElement('td')).append((100.0 * exposure / (pf.total.basis + pf.total.unrealized - pf.total.cash.basis)).toFixed(2) + '%')
 		));
 
 		tr.children('td').slice(2).addClass('text-right');
@@ -109,24 +125,6 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 	}
 	if(pf.total.stale || pfy.total.stale) {
 		$("h4#pf-day-change, h4#pf-day-change-percentage").find('span.currency-amount').addClass('stale');
-	}
-
-	let profits = [ 'profits' ];
-	let losses = [ 'losses' ];
-	let exp = [ 'exposure' ];
-	let names = [];
-	for(let t in pf.total.securities) {
-		if(Math.abs(pf.total.securities[t].quantity) < 1e-6) continue;
-		let pnl = pf.total.securities[t].realized + pf.total.securities[t].unrealized;
-		if(pnl >= 0) {
-			profits.push(pnl);
-			losses.push(0);
-		} else {
-			profits.push(0);
-			losses.push(pnl);
-		}
-		exp.push(pf.total.securities[t].basis + pf.total.securities[t].unrealized);
-		names.push(state.securities[t].name.substring(0, 50));
 	}
 
 	if(dst_chart_pf_pnl === null) dst_generate_pf_charts();
@@ -303,5 +301,5 @@ dst_on_load(() => {
 		e.preventDefault();
 		dst_mark_stale($("div#pf")); /* XXX: monthly P/L form doesn't have to be reloaded, possible optimization */
 	});
-	dst_on_state_change([ 'accounts', 'securities', 'txs', 'prices', 'ext' ], () => dst_mark_stale($("div#pf")));
+	dst_on_state_change([ 'accounts', 'securities', 'txs', 'prices', 'ext', 'settings' ], () => dst_mark_stale($("div#pf")));
 });
