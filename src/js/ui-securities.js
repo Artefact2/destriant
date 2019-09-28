@@ -55,14 +55,16 @@ const dst_reload_securities_list = function(securities) {
 		let tr = $(document.createElement('tr'));
 
 		tr.append($(document.createElement('td')).append($(document.createElement('strong')).text(s.ticker)));
-		tr.append($(document.createElement('td')).append($(document.createElement('strong')).text(s.name)));
+		tr.append($(document.createElement('td')).text(s.name.substring(0, 50)));
 		tr.append($(document.createElement('td')).text(s.isin));
 		tr.append($(document.createElement('td')).text(s.exchange));
 		tr.append($(document.createElement('td')).text(s.currency));
 		tr.append($(document.createElement('td')).append(
 			$(document.createElement('button')).addClass('btn btn-sm btn-secondary edit-security').text('Edit'),
 			' ',
-			$(document.createElement('button')).addClass('btn btn-sm btn-secondary delete-security').text('Delete')
+			$(document.createElement('button')).addClass('btn btn-sm btn-secondary delete-security').text('Delete'),
+			' ',
+			$(document.createElement('button')).addClass('btn btn-sm btn-secondary fetch-prices').text('Fetch prices').prop('disabled', s.exchange === 'nc')
 		).addClass('text-right'));
 
 		tr.data('ticker', s.ticker);

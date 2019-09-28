@@ -254,11 +254,37 @@ dst_on_load(() => {
 				});
 
 				dst_set_state('prices', state.prices).then(() => {
-					dst_reload_price_table(state.prices);
+					dst_mark_stale($("div#price-editor"));
 					dst_trigger_state_change('prices', state.prices);
 					dst_unset_btn_spinner(btn);
 				});
 			});
+		});
+	});
+
+	$("div#security-editor table").on('click', 'button.fetch-prices', function() {
+		let btn = $(this);
+		dst_set_btn_spinner(btn);
+
+		dst_get_states([ 'securities', 'prices' ]).then(state => {
+			if(state.prices === null) state.prices = {};
+			if(state.securities === null) state.securities = {};
+			let tkr = $(this).closest('tr').data('ticker');
+			return dst_fetch_quotes(state.securities[tkr]).then(quotes => [ state.prices, tkr, quotes ]);
+		}).then(state => {
+			if(!(state[1] in state[0])) {
+				state[0][state[1]] = {};
+			}
+			for(let d in state[2]) {
+				state[0][state[1]][d] = state[2][d];
+			}
+			return state[0];
+		}).then(prices => {
+			return dst_set_state('prices', prices).then(() => prices);
+		}).then(prices => {
+			dst_mark_stale($("div#price-editor"));
+			dst_trigger_state_change('prices', prices);
+			dst_unset_btn_spinner(btn);
 		});
 	});
 
