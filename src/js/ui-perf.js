@@ -48,6 +48,7 @@ const dst_generate_day_range = function*(start, end, inc) {
 };
 
 const dst_generate_months_range = function*(start, end) {
+	end = new Date(end).toISOString().split('T')[0];
 	let d = new Date(start);
 	let m = d.getMonth();
 	d.setDate(d.getDate() + 1);
@@ -419,13 +420,14 @@ dst_on_load(() => {
 		dst_regen_perf(state);
 		dst_regen_monthly_pnl(state);
 	})).on('dst-show', () => {
+		if(dst_chart_perf_account_value === null) return;
 		dst_chart_perf_account_value.flush();
 		dst_chart_perf_instrument_pnl.flush();
 		dst_chart_perf_cumulative_pnl.flush();
 	});
 	$("form#perf-date-selector").submit(function(e) {
 		e.preventDefault();
-		dst_mark_stale($("div#perf"));
+		dst_get_states([ 'securities', 'accounts', 'transactions', 'prices', 'settings' ]).then(dst_regen_perf);
 	});
 	$("select#main-account-selector").change(() => dst_mark_stale($("div#perf")));
 	dst_on_state_change([ 'accounts', 'securities', 'txs', 'prices', 'settings' ], () => dst_mark_stale($("div#perf")));
