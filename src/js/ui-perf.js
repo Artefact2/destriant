@@ -124,7 +124,7 @@ const dst_regen_perf = state => {
 		values[0].push(pf.date);
 		values[1].push(pf.total.basis + pf.total.unrealized);
 
-		let pnl = pf.total.realized + pf.total.unrealized - spf.total.realized - spf.total.unrealized;
+		let pnl = pf.total.realized + pf.total.closed + pf.total.unrealized - spf.total.realized - spf.total.closed - spf.total.unrealized;
 		if(ppnl !== null) {
 			if(pnl >= 0 && ppnl < 0 || pnl < 0 && ppnl >= 0) {
 				let x1 = new Date(pdate).getTime();
@@ -151,7 +151,7 @@ const dst_regen_perf = state => {
 			cashflows.push([ (new Date(pf.date).getTime() - starttime) / (endtime - starttime), pf.total.basis + pf.total.unrealized ]);
 			ppf = pf;
 		} else {
-			let cf = pf.total.basis - pf.total.realized - ppf.total.basis + ppf.total.realized;
+			let cf = pf.total.basis - pf.total.realized - pf.total.closed - ppf.total.basis + ppf.total.realized + ppf.total.closed;
 			ppf = pf;
 			if(Math.abs(cf) > 1e-6) {
 				cashflows.push([ (new Date(pf.date).getTime() - starttime) / (endtime - starttime), cf ]);
@@ -178,9 +178,9 @@ const dst_regen_perf = state => {
 	let gainers = [];
 
 	for(let t in epf.total.securities) {
-		let pnl = epf.total.securities[t].realized + epf.total.securities[t].unrealized;
+		let pnl = epf.total.securities[t].realized + epf.total.securities[t].closed + epf.total.securities[t].unrealized;
 		if(t in spf.total.securities) {
-			pnl -= spf.total.securities[t].realized + spf.total.securities[t].unrealized;
+			pnl -= spf.total.securities[t].realized + spf.total.securities[t].closed + spf.total.securities[t].unrealized;
 		}
 		if(Math.abs(epf.total.securities[t].quantity) < 1e-6 && Math.abs(pnl) < 1e-6) continue;
 
@@ -205,9 +205,9 @@ const dst_regen_perf = state => {
 	$("span#perf-end-date").text(epf.date);
 	$("td#perf-start-value").empty().append(dst_format_currency_amount('EUR', spf.total.basis + spf.total.unrealized)); /* XXX */
 	$("td#perf-end-value").empty().append(dst_format_currency_amount('EUR', epf.total.basis + epf.total.unrealized)); /* XXX */
-	$("td#perf-realized-pnl").empty().append(dst_format_currency_gain('EUR', epf.total.realized - spf.total.realized)); /* XXX */
-	$(".perf-pnl").empty().append(dst_format_currency_gain('EUR', epf.total.realized + epf.total.unrealized - spf.total.realized - spf.total.unrealized)); /* XXX */
-	$("td#perf-cash-xfers").empty().append(dst_format_currency_amount('EUR', epf.total.basis - epf.total.realized - spf.total.basis + spf.total.realized)); /* XXX */
+	$("td#perf-realized-pnl").empty().append(dst_format_currency_gain('EUR', epf.total.realized + epf.total.closed - spf.total.realized - spf.total.closed)); /* XXX */
+	$(".perf-pnl").empty().append(dst_format_currency_gain('EUR', epf.total.realized + epf.total.closed + epf.total.unrealized - spf.total.realized - spf.total.closed - spf.total.unrealized)); /* XXX */
+	$("td#perf-cash-xfers").empty().append(dst_format_currency_amount('EUR', epf.total.basis - epf.total.realized - epf.total.closed - spf.total.basis + spf.total.realized + spf.total.closed)); /* XXX */
 	$("td#perf-value-delta").empty().append(dst_format_currency_amount('EUR', epf.total.basis + epf.total.unrealized - spf.total.basis - spf.total.unrealized)); /* XXX */
 	if(ndays > 365) {
 		$("td#perf-irr").empty().append(
@@ -293,7 +293,7 @@ const dst_regen_monthly_pnl = state => {
 				continue;
 			}
 
-			let pnl = pf.total.realized + pf.total.unrealized - ppf.total.realized - ppf.total.unrealized;
+			let pnl = pf.total.realized + pf.total.closed + pf.total.unrealized - ppf.total.realized - pf.total.closed - ppf.total.unrealized;
 			if(Math.abs(pnl) < 1e-6) {
 				ppf = pf;
 				continue;

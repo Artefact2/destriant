@@ -25,6 +25,7 @@ const dst_pf = function*(state, filters, dates) {
 		total: {
 			basis: 0.0,
 			realized: 0.0,
+			closed: 0.0,
 			cash: { basis: 0.0, realized: 0.0 },
 			securities: {},
 		},
@@ -95,6 +96,7 @@ const dst_pf_apply_tx = (state, pf, tx) => {
 		pf.accounts[tx.account] = {
 			basis: 0.0,
 			realized: 0.0,
+			closed: 0.0,
 			cash: { basis: 0.0, realized: 0.0 },
 			securities: {},
 		};
@@ -115,10 +117,10 @@ const dst_pf_apply_tx = (state, pf, tx) => {
 
 	console.assert(tx.type === 'security');
 	if(!(tx.ticker in pf.total.securities)) {
-		pf.total.securities[tx.ticker] = { quantity: 0.0, basis: 0.0, realized: 0.0 };
+		pf.total.securities[tx.ticker] = { quantity: 0.0, basis: 0.0, realized: 0.0, closed: 0.0 };
 	}
 	if(!(tx.ticker in a.securities)) {
-		a.securities[tx.ticker] = { quantity: 0.0, basis: 0.0, realized: 0.0 };
+		a.securities[tx.ticker] = { quantity: 0.0, basis: 0.0, realized: 0.0, closed: 0.0 };
 	}
 
 	let ts = pf.total.securities[tx.ticker];
@@ -176,6 +178,17 @@ const dst_pf_apply_tx = (state, pf, tx) => {
 	ts.quantity += tx.quantity;
 	as.quantity += tx.quantity;
 	q = tx.quantity - q;
+
+	if(Math.abs(as.quantity) < 1e-6) {
+		as.closed += as.realized;
+		ts.closed += as.realized;
+		pf.total.closed += as.realized;
+		a.closed += as.realized;
+		pf.total.realized -= as.realized;
+		a.realized -= as.realized;
+		ts.realized -= as.realized;
+		as.realized -= as.realized;
+	}
 
 	/* Maybe reopen position */
 	ts.quantity += q;
