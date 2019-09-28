@@ -103,9 +103,9 @@ const dst_make_price_tr = (ticker, date, price, currency) => $(document.createEl
 	$(document.createElement('td')).text(date),
 	$(document.createElement('td')).append(dst_format_currency_amount(currency, price)).addClass('text-right'),
 	$(document.createElement('td')).append(
-		$(document.createElement('button')).addClass('btn btn-sm btn-secondary edit-price').text('Edit'),
+		$(document.createElement('button')).addClass('btn btn-xs btn-secondary edit-price').text('Edit'),
 		' ',
-		$(document.createElement('button')).addClass('btn btn-sm btn-secondary delete-price').text('Delete')
+		$(document.createElement('button')).addClass('btn btn-xs btn-secondary delete-price').text('Delete')
 	).addClass('text-right')
 );
 
@@ -329,7 +329,7 @@ dst_on_load(() => {
 	});
 
 	$("input#price-editor-filter-before").val(new Date().toISOString().split('T')[0]);
-	$("input#price-editor-filter-after").val(new Date(Date.now() - 86400000 * 14).toISOString().split('T')[0]);
+	$("input#price-editor-filter-after").val(dst_lte_trading_day().toISOString().split('T')[0]);
 	$("form#price-editor-filter").submit(function(e) {
 		e.preventDefault();
 		dst_mark_stale($("div#price-editor"));

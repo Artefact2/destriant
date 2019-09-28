@@ -110,9 +110,9 @@ const dst_make_tx_tr = function(tx, account, security) {
 	}
 
 	tr.append($(document.createElement('td')).append(
-		$(document.createElement('button')).addClass('btn btn-sm btn-secondary edit-tx').text('Edit'),
+		$(document.createElement('button')).addClass('btn btn-xs btn-secondary edit-tx').text('Edit'),
 		' ',
-		$(document.createElement('button')).addClass('btn btn-sm btn-secondary delete-tx').text('Delete')
+		$(document.createElement('button')).addClass('btn btn-xs btn-secondary delete-tx').text('Delete')
 	).addClass('text-right'));
 	return tr;
 };

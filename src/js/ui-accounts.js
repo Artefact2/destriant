@@ -44,9 +44,9 @@ const dst_reload_account_list = function(accounts) {
 			'/share'
 		));
 		tr.append($(document.createElement('td')).append(
-			$(document.createElement('button')).addClass('btn btn-sm btn-secondary edit-account').text('Edit'),
+			$(document.createElement('button')).addClass('btn btn-xs btn-secondary edit-account').text('Edit'),
 			' ',
-			$(document.createElement('button')).addClass('btn btn-sm btn-secondary delete-account').text('Delete')
+			$(document.createElement('button')).addClass('btn btn-xs btn-secondary delete-account').text('Delete')
 		).addClass('text-right'));
 		tbody.append(tr);
 	}

@@ -62,3 +62,10 @@ table#perf-monthly-pnl tr {
 	td, th { text-align: right; }
 	td:first-child, th:first-child { text-align: left; }
 }
+
+button.btn-xs {
+	padding: .2rem .4rem;
+	font-size: 0.8rem;
+	line-height: 1.0;
+	border-radius: 0.2rem;
+}

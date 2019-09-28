@@ -60,11 +60,11 @@ const dst_reload_securities_list = function(securities) {
 		tr.append($(document.createElement('td')).text(s.exchange));
 		tr.append($(document.createElement('td')).text(s.currency));
 		tr.append($(document.createElement('td')).append(
-			$(document.createElement('button')).addClass('btn btn-sm btn-secondary edit-security').text('Edit'),
+			$(document.createElement('button')).addClass('btn btn-xs btn-secondary edit-security').text('Edit'),
 			' ',
-			$(document.createElement('button')).addClass('btn btn-sm btn-secondary delete-security').text('Delete'),
+			$(document.createElement('button')).addClass('btn btn-xs btn-secondary delete-security').text('Delete'),
 			' ',
-			$(document.createElement('button')).addClass('btn btn-sm btn-secondary fetch-prices').text('Fetch prices').prop('disabled', s.exchange === 'nc')
+			$(document.createElement('button')).addClass('btn btn-xs btn-primary fetch-prices').text('Fetch prices').prop('disabled', s.exchange === 'nc')
 		).addClass('text-right'));
 
 		tr.data('ticker', s.ticker);
