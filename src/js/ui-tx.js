@@ -343,6 +343,17 @@ dst_on_load(function() {
 		});
 	});
 
+	$("div#pf table").on('click', 'button.input-transaction', function() {
+		let tr = $(this).closest('tr');
+		let modal = $("div#tx-editor-modal");
+		let account = parseInt($("select#main-account-selector").val(), 10);
+		dst_reset_tx_modal(modal);
+		modal.find('select#tx-editor-security').val(tr.data('ticker')).change();
+		if(account === -1) account = tr.data('account');
+		modal.find('select#tx-editor-account').val(account).change();
+		modal.modal('show');
+	});
+
 	$("input#tx-editor-filter-before").val(new Date().toISOString().split('T')[0]);
 	$("input#tx-editor-filter-after").val(new Date(Date.now() - 86400000 * 100).toISOString().split('T')[0]);
 	$("form#tx-editor-filter").submit(e => {

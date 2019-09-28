@@ -77,7 +77,7 @@ const dst_fill_security_select = function(select, securities) {
 		if(securities === null) securities = {};
 		select.children('option.auto').remove();
 		Object.values(securities).forEach(s => select.append($(document.createElement('option')).addClass('auto').prop('value', s.ticker).text(
-			s.ticker + ', ' + s.name
+			s.ticker + ', ' + s.name.substring(0, 50)
 		).data('currency', s.currency)));
 	};
 

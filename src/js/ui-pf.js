@@ -72,11 +72,11 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 			}
 		}
 
-		tbody.append(tr = $(document.createElement('tr')).append(
-			$(document.createElement('td')).append(
-				$(document.createElement('strong')).text(tkr),
-				', ', security.name
-			),
+		let aid = Object.keys(pf.accounts).find(aid => tkr in pf.accounts[aid].securities && Math.abs(pf.accounts[aid].securities[tkr].quantity) > 1e-6);
+		tbody.append(tr = $(document.createElement('tr')).data('account', aid).data('ticker', tkr).append(
+			$(document.createElement('td')).append($(document.createElement('button')).addClass('btn btn-xs btn-primary input-transaction').text('T').prop('title', 'Input transaction for this security')),
+			$(document.createElement('th')).text(tkr),
+			$(document.createElement('td')).text(security.name.substring(0, 50)),
 			$(document.createElement('td')).append(dst_format_fixed_amount(s.quantity, 4)),
 			$(document.createElement('td')).append(dst_format_currency_amount(security.currency, s.basis / s.quantity)),
 			$(document.createElement('td')).append(dst_format_currency_amount(security.currency, s.ltp)),
@@ -87,7 +87,7 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 			$(document.createElement('td')).append((100.0 * (s.basis + s.realized) / (pf.total.basis + pf.total.unrealized - pf.total.cash.basis)).toFixed(2) + '%')
 		));
 
-		tr.children('td').slice(1).addClass('text-right');
+		tr.children('td').slice(2).addClass('text-right');
 
 		if(s.stale) {
 			tr.find('span.currency-amount').slice(1).addClass('stale');
