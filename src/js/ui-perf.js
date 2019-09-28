@@ -79,32 +79,10 @@ const dst_generate_months_range = function*(start, end) {
 	}
 };
 
-const dst_irr = cashflows => {
-	if(cashflows.length < 2) return 1;
-
-	let fv = (rate, cashflows) => {
-		rate = Math.log(rate);
-		let nav = 0.0;
-		let time = 0.0;
-		for(let cf of cashflows) {
-			nav *= Math.exp(rate * (cf[0] - time));
-			nav += cf[1];
-			time = cf[0];
-		}
-		return nav;
-	};
-
-	let m = 0, M = 11;
-	while(M - m >= .00005) {
-		let mid = (m + M) / 2.0;
-		if(fv(mid, cashflows) > 0.0) {
-			M = mid;
-		} else {
-			m = mid;
-		}
-	}
-
-	return m;
+const dst_lerp_root = (x1, x2, y1, y2) => {
+	let a = (y2 - y1) / (x2 - x1);
+	let b = y2 - a * x2;
+	return -b / a;
 };
 
 const dst_regen_perf = state => {
@@ -133,16 +111,10 @@ const dst_regen_perf = state => {
 		values[1].push(pf.total.basis + pf.total.unrealized);
 
 		let pnl = pf.total.realized + pf.total.closed + pf.total.unrealized - spf.total.realized - spf.total.closed - spf.total.unrealized;
-		if(ppnl !== null) {
-			if(pnl >= 0 && ppnl < 0 || pnl < 0 && ppnl >= 0) {
-				let x1 = new Date(pdate).getTime();
-				let x2 = new Date(pf.date).getTime();
-				let a = (pnl - ppnl) / (x2 - x1);
-				let b = pnl - a * x2;
-				cx.push(-b / a);
-				cprofits.push(0);
-				closses.push(0);
-			}
+		if(ppnl !== null && ((pnl >= 0 && ppnl < 0) || (pnl < 0 && ppnl >= 0))) {
+			cx.push(dst_lerp_root(new Date(pdate).getTime(), new Date(pf.date).getTime(), pnl, ppnl));
+			cprofits.push(0);
+			closses.push(0);
 		}
 		if(pnl >= 0) {
 			cprofits.push(pnl);
@@ -323,12 +295,12 @@ const dst_regen_monthly_pnl = state => {
 			let tr, td, span, stale = false;
 			let s = 0.0;
 			tbody.prepend(tr = $(document.createElement('tr')));
-			tr.append($(document.createElement('td')).append($(document.createElement('small')).text(y)));
+			tr.append($(document.createElement('td')).text(y));
 
 			for(let m = 1; m <= 12; ++m) {
 				tr.append(td = $(document.createElement('td')));
 				if(!(m in monthlypnl[y])) continue;
-				td.append($(document.createElement('small')).append(span = dst_format_currency_gain('EUR', monthlypnl[y][m][0]))); /* XXX */
+				td.append(span = dst_format_currency_gain('EUR', monthlypnl[y][m][0])); /* XXX */
 				if(ty === y && tm === m) {
 					span.addClass('to-date');
 				}
@@ -339,9 +311,7 @@ const dst_regen_monthly_pnl = state => {
 				s += monthlypnl[y][m][0];
 			}
 
-			tr.append($(document.createElement('td')).append(
-				$(document.createElement('small')).append(span = dst_format_currency_gain('EUR', s))
-			)); /* XXX */
+			tr.append($(document.createElement('td')).append(span = dst_format_currency_gain('EUR', s))); /* XXX */
 			if(y === ty) span.addClass('to-date');
 			if(stale) span.addClass('stale'); /* XXX: only need dec-31 of prev year and dec-31 of this year to not be stale */
 		}

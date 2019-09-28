@@ -69,3 +69,29 @@ button.btn-xs {
 	line-height: 1.0;
 	border-radius: 0.2rem;
 }
+
+table.table-returns {
+	&> thead > tr {
+		&> td, &> th { border-top: 0; }
+	}
+
+	&> thead, &> tbody {
+		&> tr {
+			&> td, &> th {
+				text-align: right;
+				&:nth-child(1) { text-align: left; }
+			}
+		}
+	}
+}
+
+table.table-xs {
+	&> thead, &> tbody, &> tfoot {
+		&> tr {
+			&> td, &> th {
+				font-size: 80%;
+				padding: .2rem;
+			}
+		}
+	}
+}
