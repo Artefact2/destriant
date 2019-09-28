@@ -18,8 +18,8 @@
 let dst_chart_perf_account_value = null, dst_chart_perf_instrument_pnl = null, dst_chart_perf_cumulative_pnl = null;
 
 const dst_generate_day_range = function*(start, end, inc) {
-	let d = new Date(start);
-	let ymd;
+	let d = dst_lte_trading_day(start), ymd;
+	end = dst_lte_trading_day(end).toISOString().split('T')[0];
 
 	while(1) {
 		ymd = d.toISOString().split('T')[0];
@@ -36,6 +36,14 @@ const dst_generate_day_range = function*(start, end, inc) {
 		}
 
 		d.setDate(d.getDate() + inc);
+		switch(d.getDay()) {
+		case 0:
+			d.setDate(d.getDate() + 1);
+			break;
+		case 6:
+			d.setDate(d.getDate() + 2);
+			break;
+		}
 	}
 };
 
