@@ -180,6 +180,7 @@ const dst_regen_returns = state => {
 		columns: [ cx, cp, cn ],
 	});
 
+	let maxdd = null, pfpeak = null, pfv;
 	cashflows = [];
 	ppf = null;
 	for(let pf of dst_pf(state, filters, dst_generate_day_range(start, end, 1))) {
@@ -199,6 +200,21 @@ const dst_regen_returns = state => {
 			ppf = null;
 		} else {
 			ppf = pf;
+		}
+
+		pfv = pf.total.basis + pf.total.unrealized;
+		if(maxdd === null) {
+			maxdd = [ pf.date, pf.date, 1.0 ];
+			pfpeak = [ pf.date, pfv ];
+		} else {
+			if(pfv > pfpeak[1]) {
+				pfpeak[0] = pf.date;
+				pfpeak[1] = pfv;
+			}
+
+			if(Math.abs(pfpeak[1]) > 1e-6 && (pfv / pfpeak[1]) < maxdd[2]) {
+				maxdd = [ pfpeak[0], pf.date, pfv / pfpeak[1] ];
+			}
 		}
 	}
 
@@ -222,6 +238,15 @@ const dst_regen_returns = state => {
 
 		$("td#returns-irr").append(dst_format_percentage_gain(irr));
 		$("td#returns-twr").append(dst_format_percentage_gain(twr));
+	} else {
+		$("td#returns-irr, td#returns-twr").empty().text('N/A');
+	}
+
+	if(maxdd[2] < 1) {
+		$("td#returns-maxdd").empty().append(dst_format_percentage(maxdd[2]));
+		$("td#returns-maxdd-period").empty().append($(document.createElement('small')).text(maxdd[0] + ' — ' + maxdd[1]));
+	} else {
+		$("td#returns-maxdd, td#returns-maxdd-period").empty().text('N/A');
 	}
 };
 
