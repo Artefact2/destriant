@@ -180,6 +180,7 @@ const dst_regen_returns = state => {
 		columns: [ cx, cp, cn ],
 	});
 
+	let dayreturns = [];
 	let maxdd = null, pfpeak = null, pfv;
 	cashflows = [];
 	ppf = null;
@@ -194,6 +195,11 @@ const dst_regen_returns = state => {
 			if(Math.abs(cf) > 1e-6) {
 				cashflows.push([ pf.date, cf, pf.total.basis + pf.total.unrealized ]);
 			}
+
+			dayreturns.push(
+				(pf.total.unrealized + pf.total.realized + pf.total.closed - ppf.total.unrealized - ppf.total.realized - ppf.total.closed)
+					/ (ppf.total.basis + ppf.total.unrealized)
+			);
 		}
 
 		if(empty) {
@@ -248,6 +254,33 @@ const dst_regen_returns = state => {
 	} else {
 		$("td#returns-maxdd, td#returns-maxdd-period").empty().text('N/A');
 	}
+
+	dayreturns = dayreturns.map(x => Math.log(1 + x));
+	let avgr = dayreturns.reduce((acc, val) => acc + val, 0) / dayreturns.length;
+	/* https://quant.stackexchange.com/a/7500 */
+	let stddev = Math.sqrt(
+		dayreturns
+			.map(x => (x - avgr) * (x - avgr))
+			.reduce((acc, val) => acc + val, 0)
+			/ (dayreturns.length - 1)
+			* 365.25 / 7 * 5
+	);
+	let ddr = dayreturns.filter(x => x <= avgr);
+	let downsidestddev = Math.sqrt(
+		ddr
+			.map(x => (x - avgr) * (x - avgr))
+			.reduce((acc, val) => acc + val, 0)
+			/ (ddr.length - 1)
+			* 365.25 / 7 * 5
+	);
+	$("td#returns-stddev").empty().append(
+		$(document.createElement('small')).addClass('text-muted mr-2').text('annualized'),
+		dst_format_percentage(Math.exp(stddev))
+	);
+	$("td#returns-downside-stddev").empty().append(
+		$(document.createElement('small')).addClass('text-muted mr-2').text('annualized'),
+		dst_format_percentage(Math.exp(downsidestddev))
+	);
 };
 
 const dst_regen_returns_table = state => {
