@@ -179,6 +179,50 @@ const dst_regen_returns = state => {
 		unload: true,
 		columns: [ cx, cp, cn ],
 	});
+
+	cashflows = [];
+	ppf = null;
+	for(let pf of dst_pf(state, filters, dst_generate_day_range(start, end, 1))) {
+		let empty = Math.abs(pf.total.basis) < 1e-6;
+
+		if(ppf === null) {
+			if(empty) continue;
+			cashflows.push([ pf.date, pf.total.basis + pf.total.unrealized, pf.total.basis + pf.total.unrealized ]);
+		} else {
+			let cf = pf.total.basis - pf.total.realized - pf.total.closed - ppf.total.basis + ppf.total.realized + ppf.total.closed;
+			if(Math.abs(cf) > 1e-6) {
+				cashflows.push([ pf.date, cf, pf.total.basis + pf.total.unrealized ]);
+			}
+		}
+
+		if(empty) {
+			ppf = null;
+		} else {
+			ppf = pf;
+		}
+	}
+
+	if(ppf !== null) {
+		cashflows.push([ ppf.date, -ppf.total.basis - ppf.total.unrealized, 0 ]);
+	}
+
+	if(cashflows.length >= 2) {
+		let irr = dst_irr(cashflows.map(((a, b) => cf => [ (new Date(cf[0]).getTime() - a)/(b - a), cf[1] ])(
+			new Date(cashflows[0][0]).getTime(), new Date(cashflows[cashflows.length - 1][0]).getTime()
+		)));
+		twr = dst_twr(cashflows.map(cf => [ cf[1], cf[2] ]));
+
+		let tds = $("td#returns-irr, td#returns-twr").empty();
+		let nyears = (new Date(cashflows[cashflows.length - 1][0]) - new Date(cashflows[0][0]).getTime()) / (86400000 * 365.25);
+		if(nyears > 1.01) {
+			tds.append($(document.createElement('small')).addClass('text-muted mr-2').text('annualized'));
+			irr = Math.exp(Math.log(irr) / nyears);
+			twr = Math.exp(Math.log(twr) / nyears);
+		}
+
+		$("td#returns-irr").append(dst_format_percentage_gain(irr));
+		$("td#returns-twr").append(dst_format_percentage_gain(twr));
+	}
 };
 
 const dst_regen_returns_table = state => {
@@ -204,27 +248,27 @@ const dst_regen_returns_table = state => {
 		if(flows.length === 0) return;
 		/* end of month */
 		let end = date.getTime(), start = flows[0][0];
-		flows.push([ end, -pf.total.basis - pf.total.unrealized ]);
-		flows.map(f => {
-			f[0] = (f[0] - start) / (end - start);
-			return f;
-		});
+		if(Math.abs(pf.total.basis) > 1e-6) {
+			flows.push([ end, -pf.total.basis - pf.total.unrealized ]);
+		} else {
+			end = flows[flows.length - 1][0];
+		}
 		year = date.getFullYear();
 		if(!(year in irr)) irr[year] = {};
-		irr[year][month] = dst_irr(flows);
+		irr[year][month] = dst_irr(flows.map(f => [ (f[0] - start) / (end - start), f[1] ]));
 		flows = [];
 	};
 	let eoy = pf => {
 		if(yflows.length === 0) return;
 		/* end of year */
 		let end = date.getTime(), start = yflows[0][0];
-		yflows.push([ end, -pf.total.basis - pf.total.unrealized, 0 ]);
-		yflows.map(f => {
-			f[0] = (f[0] - start) / (end - start);
-			return f;
-		});
+		if(Math.abs(pf.total.basis) > 1e-6) {
+			yflows.push([ end, -pf.total.basis - pf.total.unrealized, 0 ]);
+		} else {
+			end = yflows[yflows.length - 1][0];
+		}
 		year = date.getFullYear();
-		irr[year][12] = dst_irr(yflows);
+		irr[year][12] = dst_irr(yflows.map(f => [ (f[0] - start) / (end - start), f[1] ]));
 		irr[year][13] = dst_twr(yflows.map(f => [ f[1], f[2] ]));
 		yflows = [];
 	}
@@ -288,7 +332,7 @@ const dst_regen_returns_table = state => {
 		}
 	}
 
-	tbody.find('tr:first-child > td > span.currency-gain').slice(-3).addClass('to-date');
+	tbody.find('tr:first-child > td > span.currency-amount').slice(-3).addClass('to-date');
 };
 
 dst_on_load(() => {
