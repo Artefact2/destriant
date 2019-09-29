@@ -48,7 +48,7 @@ const dst_generate_day_range = function*(start, end, inc) {
 };
 
 const dst_generate_months_range = function*(start, end) {
-	end = new Date(end).toISOString().split('T')[0];
+	end = new Date(dst_lte_trading_day(end)).toISOString().split('T')[0];
 	let d = new Date(start);
 	let m = d.getMonth();
 	d.setDate(d.getDate() + 1);
