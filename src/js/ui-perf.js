@@ -93,7 +93,6 @@ const dst_regen_perf = state => {
 
 	let spf = null, epf = null, ppf = null;
 	let values = [ [ 'x' ], [ 'accountval' ] ];
-	let cashflows = [];
 	let cx = [ 'x' ];
 	let cprofits = [ 'profits' ];
 	let closses = [ 'losses' ];
@@ -127,21 +126,8 @@ const dst_regen_perf = state => {
 		cx.push(pf.date);
 		ppnl = pnl;
 		pdate = pf.date;
-
-		if(ppf === null) {
-			cashflows.push([ (new Date(pf.date).getTime() - starttime) / (endtime - starttime), pf.total.basis + pf.total.unrealized ]);
-			ppf = pf;
-		} else {
-			let cf = pf.total.basis - pf.total.realized - pf.total.closed - ppf.total.basis + ppf.total.realized + ppf.total.closed;
-			ppf = pf;
-			if(Math.abs(cf) > 1e-6) {
-				cashflows.push([ (new Date(pf.date).getTime() - starttime) / (endtime - starttime), cf ]);
-			}
-		}
+		ppf = pf;
 	}
-
-	cashflows.push([ 1, -epf.total.basis - epf.total.unrealized ]);
-	let irr = dst_irr(cashflows);
 
 	if(dst_chart_perf_account_value === null) dst_generate_perf_charts();
 	dst_chart_perf_account_value.load({
@@ -190,21 +176,13 @@ const dst_regen_perf = state => {
 	$(".perf-pnl").empty().append(dst_format_currency_gain('EUR', epf.total.realized + epf.total.closed + epf.total.unrealized - spf.total.realized - spf.total.closed - spf.total.unrealized)); /* XXX */
 	$("td#perf-cash-xfers").empty().append(dst_format_currency_amount('EUR', epf.total.basis - epf.total.realized - epf.total.closed - spf.total.basis + spf.total.realized + spf.total.closed)); /* XXX */
 	$("td#perf-value-delta").empty().append(dst_format_currency_amount('EUR', epf.total.basis + epf.total.unrealized - spf.total.basis - spf.total.unrealized)); /* XXX */
-	if(ndays > 365) {
-		$("td#perf-irr").empty().append(
-			$(document.createElement('small')).addClass('text-muted').text('annualized '),
-			dst_format_percentage_gain(Math.exp(Math.log(irr) / (ndays / 365.25)))
-		);
-	} else {
-		$("td#perf-irr").empty().append(dst_format_percentage_gain(irr));
-	}
 
 	$("div#perf .stale").removeClass('stale');
 	if(spf.total.stale) {
-		$("td#perf-start-value, .perf-pnl, td#perf-value-delta, td#perf-irr").find('span.currency-amount').addClass('stale');
+		$("td#perf-start-value, .perf-pnl, td#perf-value-delta").find('span.currency-amount').addClass('stale');
 	}
 	if(epf.total.stale) {
-		$("td#perf-end-value, .perf-pnl, td#perf-value-delta, td#perf-irr").find('span.currency-amount').addClass('stale');
+		$("td#perf-end-value, .perf-pnl, td#perf-value-delta").find('span.currency-amount').addClass('stale');
 	}
 
 	if(gainers.length > 0) {
