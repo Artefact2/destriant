@@ -193,7 +193,6 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 	$("h4#pf-cash-available").empty().append(dst_format_currency_amount('EUR', pf.total.cash.basis)); /* XXX */
 	$("h4#pf-account-value").empty().append(dst_format_currency_amount('EUR', pf.total.basis + pf.total.unrealized)); /* XXX */
 
-	$("td#pf-total-exposure-percent").empty().append(dst_format_percentage(1 + (pf.total.basis + pf.total.unrealized - pf.total.cash.basis) / (pf.total.basis + pf.total.unrealized)));
 	$("td#pf-total-pnl-cash").empty().append(dst_format_currency_gain('EUR', pf.total.cash.realized)); /* XXX */
 	$("td#pf-total-exposure-cash").empty().append(dst_format_currency_amount('EUR', pf.total.cash.basis)); /* XXX */
 	$("td#pf-total-exposure-percent-cash").empty().append(dst_format_percentage(1 + pf.total.cash.basis / (pf.total.basis + pf.total.unrealized)));
@@ -388,6 +387,7 @@ const dst_generate_pf_charts = () => {
 };
 
 dst_on_load(() => {
+	$("td#pf-total-exposure-percent").append(dst_format_percentage(2));
 	$("td#pf-total-exposure-closed").append(dst_format_currency_amount('EUR', 0.0)); /* XXX */
 	$("td#pf-total-exposure-percent-closed").append(dst_format_percentage(1));
 
