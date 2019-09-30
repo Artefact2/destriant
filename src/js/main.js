@@ -66,7 +66,7 @@ const dst_format_percentage = pc => {
 	let sp = $(document.createElement('span')).addClass('currency-amount');
 	if(pc > 1.0) sp.addClass('currency-amount-positive');
 	else if(pc < 1.0) sp.addClass('currency-amount-negative');
-	return sp.text((100.0 * pc - 100.0).toFixed(2) + '%');
+	return sp.text(Math.abs(100.0 * pc - 100.0).toFixed(2) + '%');
 };
 const dst_format_percentage_gain = pc => {
 	let sp = dst_format_percentage(pc);
