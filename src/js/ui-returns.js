@@ -306,6 +306,7 @@ const dst_regen_returns_table = state => {
 		if(flows.length === 0) return;
 		/* end of month */
 		let end = date.getTime(), start = flows[0][0];
+		if(start === end) return;
 		if(Math.abs(pf.total.basis) > 1e-6) {
 			flows.push([ end, -pf.total.basis - pf.total.unrealized ]);
 		} else {
@@ -320,6 +321,7 @@ const dst_regen_returns_table = state => {
 		if(yflows.length === 0) return;
 		/* end of year */
 		let end = date.getTime(), start = yflows[0][0];
+		if(start === end) return;
 		if(Math.abs(pf.total.basis) > 1e-6) {
 			yflows.push([ end, -pf.total.basis - pf.total.unrealized, 0 ]);
 		} else {
