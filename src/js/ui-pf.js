@@ -19,6 +19,79 @@ let dst_chart_pf_pnl = null, dst_chart_pf_exposure = null;
 let dst_chart_pf_exposure_type = null, dst_chart_pf_exposure_currency = null;
 let dst_chart_pf_exposure_country = null, dst_chart_pf_exposure_gics = null;
 
+const dst_log_returns = (cutoff, prices, splits) => {
+	let returns = {}, s = 0.0, n = 0;
+	if(typeof prices !== "object") return [ s, returns ];
+
+	for(let k in prices) {
+		if(k < cutoff) continue;
+
+		let yday = new Date(k);
+		switch(yday.getDay()) {
+		case 1: yday.setDate(yday.getDate() - 3); break;
+		default: yday.setDate(yday.getDate() - 1); break;
+		}
+		yday = yday.toISOString().split('T')[0];
+		if(!(yday in prices)) continue;
+
+		let r = Math.log(((k in splits) ? splits[k] : 1.0) * prices[k] / prices[yday]);
+		returns[k] = r;
+		s += r;
+		++n;
+	}
+
+	return [ s / n, returns ];
+};
+
+const dst_covariance = (v1, v2, mu1, mu2) => {
+	let cov = 0, n = 0;
+
+	for(let k in v1) {
+		if(!(k in v2)) continue;
+
+		cov += (v1[k] - mu1) * (v2[k] - mu2);
+		++n;
+	}
+
+	if(n < 2) return NaN;
+	return cov / (n - 1) * 365.25 / 7 * 5;
+};
+
+const dst_pf_risk = (pf, state, out) => {
+	let splits = {};
+	state.transactions.forEach(tx => {
+		if(tx.type !== 'split') return;
+		if(!(tx.ticker in splits)) splits[tx.ticker] = {};
+		splits[tx.ticker][tx.date] = tx.after / tx.before;
+	});
+
+	let cutoff = new Date();
+	cutoff.setFullYear(cutoff.getFullYear() - 10);
+	cutoff = cutoff.toISOString().split('T')[0];
+
+	const tickers = Object.keys(pf.total.securities).filter(ticker => Math.abs(pf.total.securities[ticker].quantity) > 1e-6);
+	const nt = tickers.length;
+	const weights = {}, returns = {};
+	tickers.forEach(tkr => {
+		weights[tkr] = (pf.total.securities[tkr].basis + pf.total.securities[tkr].unrealized) / (pf.total.basis + pf.total.unrealized);
+		returns[tkr] = dst_log_returns(cutoff, tkr in state.prices ? state.prices[tkr] : {}, tkr in splits ? splits[tkr] : {});
+	});
+
+	let variance = 0, t1, t2;
+	for(let i = 0; i < nt; ++i) {
+		t1 = tickers[i];
+		if(typeof out === 'object') out[t1] = {};
+		for(let j = 0; j <= i; ++j) {
+			t2 = tickers[j];
+			let cv = dst_covariance(returns[t1][1], returns[t2][1], returns[t1][0], returns[t2][0]);
+			if(typeof out === 'object') out[t1][t2] = cv;
+			variance += ((i === j) ? 1.0 : 2.0) * weights[t1] * weights[t2] * cv;
+		}
+	}
+
+	return Math.exp(Math.sqrt(variance));
+};
+
 const dst_fetch_and_regen_pf_table = () => dst_get_states([ 'accounts', 'securities', 'transactions', 'prices', 'ext', 'settings' ]).then(state => {
 	let v = parseInt($("select#main-account-selector").val(), 10);
 	let before = $("input#pf-date-select-date").val();
@@ -131,6 +204,28 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 	if(pf.total.stale || pfy.total.stale) {
 		$("h4#pf-day-change, h4#pf-day-change-percentage").find('span.currency-amount').addClass('stale');
 	}
+
+	/* XXX: make nice UI for this */
+	let out = {}/*, tr*/;
+	$("h4#pf-account-risk").empty().append(dst_format_percentage(dst_pf_risk(pf, state/*, out*/)));
+	/*$("table#cov").remove();
+	$("div#pf").append($(document.createElement('table')).prop('id', 'cov').addClass('table table-sm').append(tbody = $(document.createElement('tbody'))));
+	tbody.append(tr = $(document.createElement('tr')).append($(document.createElement('td')).prop('colspan', 2)));
+	Object.keys(out).forEach(ticker => tr.append($(document.createElement('th')).text(ticker)));
+	Object.keys(out).reverse().forEach(t1 => {
+		tbody.append(tr = $(document.createElement('tr')));
+		tr.append($(document.createElement('th')).text(t1));
+		tr.append($(document.createElement('td')).append(dst_format_percentage(Math.exp(Math.sqrt(out[t1][t1])))));
+		Object.keys(out).forEach(t2 => {
+			if(t2 in out[t1]) {
+				let c = out[t1][t2] / Math.sqrt(out[t1][t1] * out[t2][t2]);
+				tr.append($(document.createElement('td')).text(c.toFixed(2)).css({
+					'background-color': 'hsla(' + (c >= 0 ? 140 : 20) + ', 80%, 25%, ' + (c*c) + ')'
+				}));
+			}
+		});
+	});*/
+
 
 	if(dst_chart_pf_pnl === null) dst_generate_pf_charts();
 
