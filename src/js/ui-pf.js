@@ -188,10 +188,10 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 	$("h4#pf-day-change").empty().append(dst_format_currency_gain('EUR', daypnl)); /* XXX */
 	$("h4#pf-day-change-percentage").empty().append(dst_format_percentage_gain(daypnlp));
 
-	$(".pf-total-exposure, h4#pf-positions-value").empty().append(dst_format_currency_amount('EUR', pf.total.basis + pf.total.unrealized - pf.total.cash.basis)); /* XXX */
+	$("h4#pf-positions-value").empty().append(dst_format_currency_amount('EUR', pf.total.basis + pf.total.unrealized - pf.total.cash.basis)); /* XXX */
 	$(".pf-total-pnl").empty().append(dst_format_currency_gain('EUR', pf.total.realized + pf.total.closed + pf.total.unrealized)); /* XXX */
 	$("h4#pf-cash-available").empty().append(dst_format_currency_amount('EUR', pf.total.cash.basis)); /* XXX */
-	$("h4#pf-account-value").empty().append(dst_format_currency_amount('EUR', pf.total.basis + pf.total.unrealized)); /* XXX */
+	$("h4#pf-account-value, .pf-total-exposure").empty().append(dst_format_currency_amount('EUR', pf.total.basis + pf.total.unrealized)); /* XXX */
 
 	$("td#pf-total-pnl-cash").empty().append(dst_format_currency_gain('EUR', pf.total.cash.realized)); /* XXX */
 	$("td#pf-total-exposure-cash").empty().append(dst_format_currency_amount('EUR', pf.total.cash.basis)); /* XXX */
