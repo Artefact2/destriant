@@ -98,7 +98,7 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 			$(document.createElement('td')).append((tkr in pfy.total.securities && pfy.total.securities[tkr].quantity > 1e-6) ? dst_format_percentage_gain(s.ltp / pfy.total.securities[tkr].ltp) : ''), /* XXX: will break at splits */
 			$(document.createElement('td')).append(dst_format_currency_gain(security.currency, pnl)),
 			$(document.createElement('td')).append(dst_format_currency_amount(security.currency, exposure)),
-			$(document.createElement('td')).append((100.0 * exposure / (pf.total.basis + pf.total.unrealized - pf.total.cash.basis)).toFixed(2) + '%')
+			$(document.createElement('td')).append((100.0 * exposure / (pf.total.basis + pf.total.unrealized)).toFixed(2) + '%')
 		));
 
 		tr.children('td').slice(2).addClass('text-right');
@@ -119,6 +119,11 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 	$(".pf-total-pnl").empty().append(dst_format_currency_gain('EUR', pf.total.realized + pf.total.closed + pf.total.unrealized)); /* XXX */
 	$("h4#pf-cash-available").empty().append(dst_format_currency_amount('EUR', pf.total.cash.basis)); /* XXX */
 	$("h4#pf-account-value").empty().append(dst_format_currency_amount('EUR', pf.total.basis + pf.total.unrealized)); /* XXX */
+
+	$("td#pf-total-exposure-percent").empty().append(dst_format_percentage(1 + (pf.total.basis + pf.total.unrealized - pf.total.cash.basis) / (pf.total.basis + pf.total.unrealized)));
+	$("td#pf-total-pnl-cash").empty().append(dst_format_currency_gain('EUR', pf.total.cash.realized)); /* XXX */
+	$("td#pf-total-exposure-cash").empty().append(dst_format_currency_amount('EUR', pf.total.cash.basis)); /* XXX */
+	$("td#pf-total-exposure-percent-cash").empty().append(dst_format_percentage(1 + pf.total.cash.basis / (pf.total.basis + pf.total.unrealized)));
 
 	if(pf.total.stale) {
 		$(".pf-total-exposure, .pf-total-pnl, h4#pf-positions-value, h4#pf-account-value").find('span.currency-amount').addClass('stale');
@@ -288,7 +293,6 @@ const dst_generate_pf_charts = () => {
 };
 
 dst_on_load(() => {
-	$("td#pf-total-exposure-percent").append(dst_format_percentage(2));
 	$("td#pf-total-exposure-closed").append(dst_format_currency_amount('EUR', 0.0)); /* XXX */
 	$("td#pf-total-exposure-percent-closed").append(dst_format_percentage(1));
 
