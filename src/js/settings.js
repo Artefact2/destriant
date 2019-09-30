@@ -60,6 +60,7 @@ dst_on_load(() => {
 		$("input#settings-auto-quotes-before").val('auto-quotes-before' in settings ? settings['auto-quotes-before'] : '18:00');
 
 		$("select#settings-security-sort").val('security-sort' in settings ? settings['security-sort'] : 'default');
+		$("textarea#settings-custom-css").val('custom-css' in settings ? settings['custom-css'] : '');
 	}));
 
 	$("input#settings-auto-quotes").change(function() {
@@ -80,11 +81,17 @@ dst_on_load(() => {
 			}
 
 			settings['security-sort'] = $("select#settings-security-sort").val();
+			settings['custom-css'] = $("textarea#settings-custom-css").val();
 			dst_trigger_state_change('settings', settings);
 			return settings;
 		}).then(settings => dst_set_state('settings', settings)).then(() => {
 			btn.prop('disabled', false).after(span = $(document.createElement('span')).addClass('text-success pl-2').text('Saved!'));
 			setTimeout(() => span.fadeOut(1000, () => span.remove()), 10000);
 		});
+	});
+
+	dst_on_state_change('settings', settings => {
+		if(settings === null) return;
+		$("style#dst-custom").text('custom-css' in settings ? settings['custom-css'] : '');
 	});
 });
