@@ -271,7 +271,7 @@ const dst_regen_monthly_pnl = state => {
 		let tm = parseInt(ty[1], 10);
 		ty = parseInt(ty[0], 10).toString();
 		for(let y in monthlypnl) {
-			let tr, td, span, stale = false;
+			let tr, td, span;
 			let s = 0.0;
 			tbody.prepend(tr = $(document.createElement('tr')));
 			tr.append($(document.createElement('td')).text(y));
@@ -284,7 +284,6 @@ const dst_regen_monthly_pnl = state => {
 					span.addClass('to-date');
 				}
 				if(monthlypnl[y][m][1]) {
-					stale = true;
 					span.addClass('stale');
 				}
 				s += monthlypnl[y][m][0];
@@ -292,7 +291,16 @@ const dst_regen_monthly_pnl = state => {
 
 			tr.append($(document.createElement('td')).append(span = dst_format_currency_gain('EUR', s))); /* XXX */
 			if(y === ty) span.addClass('to-date');
-			if(stale) span.addClass('stale'); /* XXX: only need dec-31 of prev year and dec-31 of this year to not be stale */
+			for(let m = 1; m <= 11; ++m) {
+				if(!(m in monthlypnl[y])) continue;
+				if(monthlypnl[y][m][1]) span.addClass('stale');
+				break;
+			}
+			for(let m = 12; m >= 2; --m) {
+				if(!(m in monthlypnl[y])) continue;
+				if(monthlypnl[y][m][1]) span.addClass('stale');
+				break;
+			}
 		}
 	};
 
