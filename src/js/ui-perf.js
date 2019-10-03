@@ -252,7 +252,7 @@ const dst_regen_monthly_pnl = state => {
 				continue;
 			}
 
-			let pnl = pf.total.realized + pf.total.closed + pf.total.unrealized - ppf.total.realized - pf.total.closed - ppf.total.unrealized;
+			let pnl = pf.total.realized + pf.total.closed + pf.total.unrealized - ppf.total.realized - ppf.total.closed - ppf.total.unrealized;
 			if(Math.abs(pnl) < 1e-6) {
 				ppf = pf;
 				continue;
@@ -264,6 +264,9 @@ const dst_regen_monthly_pnl = state => {
 
 			if(!(year in monthlypnl)) monthlypnl[year] = {};
 			monthlypnl[year][month] = [ pnl, pf.total.stale || ppf.total.stale ];
+			if(year === 2019 && month === 6) {
+				console.debug(ppf, pf, pnl);
+			}
 			ppf = pf;
 		}
 		let tbody = $("table#perf-monthly-pnl tbody").empty();
