@@ -140,66 +140,53 @@ const dst_regen_returns = state => {
 	let cx = [ 'x' ];
 	let cp = [ 'positive' ];
 	let cn = [ 'negative' ];
-	let cashflows = [], twr, prevtwr = null, ppf = null;
+	let cashflows = [], twr, prevtwr = null, prevtwrdate = null, ppf = null;
+	let dayreturns = [];
+	let maxdd = null, pfpeak = null, pfv;
 
-	for(let pf of dst_pf(state, filters, dst_generate_day_range(start, end, inc))) {
-		if(ppf === null) {
-			prevtwr = twr = 0.0;
-			cashflows.push([ pf.total.basis + pf.total.unrealized, pf.total.basis + pf.total.unrealized ]);
-		} else {
-			let cf = pf.total.basis - pf.total.realized - pf.total.closed - ppf.total.basis + ppf.total.realized + ppf.total.closed;
-			if(Math.abs(cf) > 1e-6) {
-				cashflows.push([ cf, pf.total.basis + pf.total.unrealized ]);
-			}
-
-			cashflows.push([ -pf.total.basis - pf.total.unrealized, 0 ]);
-			twr = 100.0 * (dst_twr(cashflows) - 1.00);
-			cashflows.pop();
-		}
-
-		if((twr >= 0 && prevtwr < 0) || (twr < 0 && prevtwr >= 0)) {
-			cx.push(dst_lerp_root(new Date(ppf.date).getTime(), new Date(pf.date).getTime(), prevtwr, twr));
+	const add_twr = (time, twr) => {
+		if((twr >= 1 && prevtwr < 1) || (twr < 1 && prevtwr >= 1)) {
+			cx.push(dst_lerp_root(prevtwrdate, time, prevtwr - 1.0, twr - 1.0));
 			cp.push(0);
 			cn.push(0);
 		}
-		cx.push(pf.date);
-		if(twr >= 0) {
-			cp.push(twr);
+		cx.push(time);
+		if(twr >= 1) {
+			cp.push(100.0 * (twr - 1.0));
 			cn.push(null);
 		} else {
 			cp.push(null);
-			cn.push(twr);
+			cn.push(100.0 * (twr - 1.0));
 		}
-
-		ppf = pf;
 		prevtwr = twr;
+		prevtwrdate = time;
 	}
 
-	dst_chart_returns_account_returns.load({
-		unload: true,
-		columns: [ cx, cp, cn ],
-	});
-
-	let dayreturns = [];
-	let maxdd = null, pfpeak = null, pfv;
-	cashflows = [];
-	ppf = null;
 	for(let pf of dst_pf(state, filters, dst_generate_day_range(start, end, 1))) {
 		let empty = Math.abs(pf.total.basis) < 1e-6;
 
 		if(ppf === null) {
+			prevtwr = twr = 1.0;
 			if(empty) continue;
-			cashflows.push([ pf.date, pf.total.basis + pf.total.unrealized, pf.total.basis + pf.total.unrealized ]);
+			cashflows.push([ pf.total.basis + pf.total.unrealized, pf.total.basis + pf.total.unrealized, pf.date ]);
 		} else {
 			let cf = pf.total.basis - pf.total.realized - pf.total.closed - ppf.total.basis + ppf.total.realized + ppf.total.closed;
 			if(Math.abs(cf) > 1e-6) {
-				cashflows.push([ pf.date, cf, pf.total.basis + pf.total.unrealized ]);
+				cashflows.push([ cf, pf.total.basis + pf.total.unrealized, pf.date ]);
 			}
+
+			cashflows.push([ -pf.total.basis - pf.total.unrealized, 0 ]);
+			twr = dst_twr(cashflows);
+			cashflows.pop();
 
 			dayreturns.push(
 				(pf.total.unrealized + pf.total.realized + pf.total.closed - ppf.total.unrealized - ppf.total.realized - ppf.total.closed)
 					/ (ppf.total.basis + ppf.total.unrealized)
 			);
+		}
+
+		if(prevtwrdate === null || (new Date(pf.date).getTime() - prevtwrdate) / 86400000.0 >= inc) {
+			add_twr(new Date(pf.date).getTime(), twr);
 		}
 
 		if(empty) {
@@ -225,17 +212,18 @@ const dst_regen_returns = state => {
 	}
 
 	if(ppf !== null) {
-		cashflows.push([ ppf.date, -ppf.total.basis - ppf.total.unrealized, 0 ]);
+		cashflows.push([ -ppf.total.basis - ppf.total.unrealized, 0, ppf.date ]);
 	}
 
 	if(cashflows.length >= 2) {
-		let irr = dst_irr(cashflows.map(((a, b) => cf => [ (new Date(cf[0]).getTime() - a)/(b - a), cf[1] ])(
-			new Date(cashflows[0][0]).getTime(), new Date(cashflows[cashflows.length - 1][0]).getTime()
+		let irr = dst_irr(cashflows.map(((a, b) => cf => [ (new Date(cf[2]).getTime() - a)/(b - a), cf[0] ])(
+			new Date(cashflows[0][2]).getTime(), new Date(cashflows[cashflows.length - 1][2]).getTime()
 		)));
-		twr = dst_twr(cashflows.map(cf => [ cf[1], cf[2] ]));
+		twr = dst_twr(cashflows);
+		add_twr(new Date(ppf.date).getTime(), twr);
 
 		let tds = $("td#returns-irr, td#returns-twr").empty();
-		let nyears = (new Date(cashflows[cashflows.length - 1][0]) - new Date(cashflows[0][0]).getTime()) / (86400000 * 365.25);
+		let nyears = (new Date(cashflows[cashflows.length - 1][2]) - new Date(cashflows[0][2]).getTime()) / (86400000 * 365.25);
 		if(nyears > 1.01) {
 			tds.append($(document.createElement('small')).addClass('text-muted mr-2').text('annualized'));
 			irr = Math.exp(Math.log(irr) / nyears);
@@ -254,6 +242,11 @@ const dst_regen_returns = state => {
 	} else {
 		$("td#returns-maxdd, td#returns-maxdd-period").empty().text('N/A');
 	}
+
+	dst_chart_returns_account_returns.load({
+		unload: true,
+		columns: [ cx, cp, cn ],
+	});
 
 	dayreturns = dayreturns.map(x => Math.log(1 + x));
 	let avgr = dayreturns.reduce((acc, val) => acc + val, 0) / dayreturns.length;

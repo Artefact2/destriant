@@ -264,9 +264,6 @@ const dst_regen_monthly_pnl = state => {
 
 			if(!(year in monthlypnl)) monthlypnl[year] = {};
 			monthlypnl[year][month] = [ pnl, pf.total.stale || ppf.total.stale ];
-			if(year === 2019 && month === 6) {
-				console.debug(ppf, pf, pnl);
-			}
 			ppf = pf;
 		}
 		let tbody = $("table#perf-monthly-pnl tbody").empty();
