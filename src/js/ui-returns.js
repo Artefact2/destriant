@@ -142,7 +142,7 @@ const dst_regen_returns = state => {
 	let cn = [ 'negative' ];
 	let cashflows = [], twr, prevtwr = null, prevtwrdate = null, ppf = null;
 	let dayreturns = [];
-	let maxdd = null, pfpeak = null, pfv;
+	let maxdd = null, maxtwr = null;
 
 	const add_twr = (time, twr) => {
 		if((twr >= 1 && prevtwr < 1) || (twr < 1 && prevtwr >= 1)) {
@@ -160,14 +160,22 @@ const dst_regen_returns = state => {
 		}
 		prevtwr = twr;
 		prevtwrdate = time;
-	}
+	};
+	const maybe_add_twr = (time, twr) => {
+		if(prevtwrdate === null || (time - prevtwrdate) / 86400000.0 >= inc) {
+			return add_twr(time, twr);
+		}
+	};
 
 	for(let pf of dst_pf(state, filters, dst_generate_day_range(start, end, 1))) {
 		let empty = Math.abs(pf.total.basis) < 1e-6;
 
 		if(ppf === null) {
 			prevtwr = twr = 1.0;
-			if(empty) continue;
+			if(empty) {
+				maybe_add_twr(new Date(pf.date).getTime(), twr);
+				continue;
+			}
 			cashflows.push([ pf.total.basis + pf.total.unrealized, pf.total.basis + pf.total.unrealized, pf.date ]);
 		} else {
 			let cf = pf.total.basis - pf.total.realized - pf.total.closed - ppf.total.basis + ppf.total.realized + ppf.total.closed;
@@ -185,9 +193,7 @@ const dst_regen_returns = state => {
 			);
 		}
 
-		if(prevtwrdate === null || (new Date(pf.date).getTime() - prevtwrdate) / 86400000.0 >= inc) {
-			add_twr(new Date(pf.date).getTime(), twr);
-		}
+		maybe_add_twr(new Date(pf.date).getTime(), twr);
 
 		if(empty) {
 			ppf = null;
@@ -195,18 +201,17 @@ const dst_regen_returns = state => {
 			ppf = pf;
 		}
 
-		pfv = pf.total.basis + pf.total.unrealized;
 		if(maxdd === null) {
-			maxdd = [ pf.date, pf.date, 1.0 ];
-			pfpeak = [ pf.date, pfv ];
+			maxdd = [ pf.date, pf.date, twr ];
+			maxtwr = [ pf.date, twr ];
 		} else {
-			if(pfv > pfpeak[1]) {
-				pfpeak[0] = pf.date;
-				pfpeak[1] = pfv;
+			if(twr > maxtwr[1]) {
+				maxtwr[0] = pf.date;
+				maxtwr[1] = twr;
 			}
 
-			if(Math.abs(pfpeak[1]) > 1e-6 && (pfv / pfpeak[1]) < maxdd[2]) {
-				maxdd = [ pfpeak[0], pf.date, pfv / pfpeak[1] ];
+			if((twr / maxtwr[1]) < maxdd[2]) {
+				maxdd = [ maxtwr[0], pf.date, twr / maxtwr[1] ];
 			}
 		}
 	}
@@ -215,11 +220,18 @@ const dst_regen_returns = state => {
 		cashflows.push([ -ppf.total.basis - ppf.total.unrealized, 0, ppf.date ]);
 	}
 
+	if(maxdd[2] < 1) {
+		$("td#returns-maxdd").empty().append(dst_format_percentage(maxdd[2]));
+		$("td#returns-maxdd-period").empty().append($(document.createElement('small')).text(maxdd[0] + ' — ' + maxdd[1]));
+	} else {
+		$("td#returns-maxdd, td#returns-maxdd-period").empty().text('N/A');
+	}
+	$("td#returns-current-dd").empty().append(dst_format_percentage(twr / maxtwr[1]));
+
 	if(cashflows.length >= 2) {
 		let irr = dst_irr(cashflows.map(((a, b) => cf => [ (new Date(cf[2]).getTime() - a)/(b - a), cf[0] ])(
 			new Date(cashflows[0][2]).getTime(), new Date(cashflows[cashflows.length - 1][2]).getTime()
 		)));
-		twr = dst_twr(cashflows);
 		add_twr(new Date(ppf.date).getTime(), twr);
 
 		let tds = $("td#returns-irr, td#returns-twr").empty();
@@ -234,13 +246,6 @@ const dst_regen_returns = state => {
 		$("td#returns-twr").append(dst_format_percentage_gain(twr));
 	} else {
 		$("td#returns-irr, td#returns-twr").empty().text('N/A');
-	}
-
-	if(maxdd[2] < 1) {
-		$("td#returns-maxdd").empty().append(dst_format_percentage(maxdd[2]));
-		$("td#returns-maxdd-period").empty().append($(document.createElement('small')).text(maxdd[0] + ' — ' + maxdd[1]));
-	} else {
-		$("td#returns-maxdd, td#returns-maxdd-period").empty().text('N/A');
 	}
 
 	dst_chart_returns_account_returns.load({
