@@ -232,7 +232,7 @@ const dst_regen_returns = state => {
 		let irr = dst_irr(cashflows.map(((a, b) => cf => [ (new Date(cf[2]).getTime() - a)/(b - a), cf[0] ])(
 			new Date(cashflows[0][2]).getTime(), new Date(cashflows[cashflows.length - 1][2]).getTime()
 		)));
-		add_twr(new Date(ppf.date).getTime(), twr);
+		if(ppf !== null) add_twr(new Date(ppf.date).getTime(), twr);
 
 		let tds = $("td#returns-irr, td#returns-twr").empty();
 		let nyears = (new Date(cashflows[cashflows.length - 1][2]) - new Date(cashflows[0][2]).getTime()) / (86400000 * 365.25);
