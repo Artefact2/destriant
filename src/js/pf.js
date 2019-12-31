@@ -282,14 +282,14 @@ const dst_lte_trading_day = date => {
 	}
 
 	/* XXX */
-	/* http://www.swingbourse.com/bourse-jours-feries.php */
+	/* https://www.euronext.com/en/trade/trading-hours-holidays */
 	switch(date.toISOString().split('T')[0].substring(5)) {
 	case '01-01':
 	case '05-01':
-	case '12-24':
+	/*case '12-24':*/
 	case '12-25':
 	case '12-26':
-	case '12-31':
+	/*case '12-31':*/
 		date.setDate(date.getDate() - 1);
 		return dst_lte_trading_day(date);
 	}
