@@ -1,4 +1,4 @@
-/* Copyright 2019 Romain "Artefact2" Dal Maso <romain.dalmaso@artefact2.com>
+/* Copyright 2019, 2020 Romain "Artefact2" Dal Maso <romain.dalmaso@artefact2.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ const dst_currencies = [
 const dst_exchanges = [
 	{ id: 'XPAR', name: 'Euronext Paris' },
 	{ id: 'XAMS', name: 'Euronext Amsterdam' },
+	{ id: 'XETR', name: 'XETRA' },
 	{ id: 'nc', name: 'Other' },
 ];
 

@@ -1,4 +1,4 @@
-/* Copyright 2019 Romain "Artefact2" Dal Maso <romain.dalmaso@artefact2.com>
+/* Copyright 2019, 2020 Romain "Artefact2" Dal Maso <romain.dalmaso@artefact2.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,9 @@ const dst_fetch_quotes = security => {
 	case 'XPAR':
 	case 'XAMS':
 		return dst_fetch_euronext_quotes(security);
+
+	case 'XETR':
+		return dst_fetch_xetra_quotes(security);
 
 	default:
 		return new Promise((resolve, reject) => resolve({}));
@@ -61,3 +64,32 @@ const dst_fetch_euronext_quotes = security => Promise.all([
 	}
 	return quotes;
 }).catch(e => console.error(security, e));
+
+const dst_fetch_xetra_quotes = security => {
+	const d = new Date();
+	const end = d.toISOString().split('T')[0];
+	d.setFullYear(d.getFullYear() - 1);
+	const start = d.toISOString().split('T')[0];
+
+	return Promise.all([
+		fetch('https://api.boerse-frankfurt.de/data/price_history?limit=100&offset=0&isin='
+			  + security.isin + '&mic=XETR&minDate=' + start + '&maxDate=' + end).then(r => r.json()),
+		new Promise((resolve, reject) => {
+			const es = new EventSource('https://api.boerse-frankfurt.de/data/price_information?isin=' + security.isin + '&mic=XETR');
+			/* XXX: use Promise.finally? but es is out of scope */
+			es.onmessage = event => { es.close(); resolve(event); };
+			es.onerror = err => { es.close(); reject(err); };
+		}).then(m => JSON.parse(m.data)),
+	]).then(data => {
+		let quotes = {};
+		for(let q of data[0].data) {
+			quotes[q.date] = q.close;
+		}
+
+		const tdate = data[1].timestampLastPrice.split('T')[0];
+		if(!(tdate in quotes)) {
+			quotes[data[1].timestampLastPrice.split('T')[0]] = data[1].lastPrice;
+		}
+		return quotes;
+	}).catch(e => console.error(security, e));
+};
