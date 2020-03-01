@@ -95,3 +95,22 @@ table.table-xs {
 		}
 	}
 }
+
+td.pf-52w {
+	&> div {
+		height: .8em;
+		display: inline-block;
+		background-color: hsla(0, 0, 50%, 0.25);
+		position: relative;
+		vertical-align: middle;
+
+		&> div {
+			height: .8em;
+			display: inline-block;
+			position: absolute;
+			top: 0;
+			background-color: hsla(200, 100%, 60%, .8);
+			opacity: .8;
+		}
+	}
+}
