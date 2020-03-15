@@ -117,9 +117,33 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 	let exp = [ 'exposure' ];
 	let names = [];
 
-	let ycutoff = new Date(pf.date);
-	ycutoff.setFullYear(ycutoff.getFullYear()-1);
-	ycutoff = ycutoff.toISOString().split('T')[0];
+	let yearcutoff = new Date(pf.date), yearminmax = {}, yeardataxy = {}, yearelement;
+	yearcutoff.setFullYear(yearcutoff.getFullYear()-1);
+	yearcutoff = yearcutoff.toISOString().split('T')[0];
+
+	for(let tkr in pf.total.securities) {
+		if(Math.abs(pf.total.securities[tkr].quantity) < 1e-6) continue;
+		yearminmax[tkr] = [ Number.MAX_VALUE, Number.MIN_VALUE ];
+		yeardataxy[tkr] = [];
+	}
+	for(let tkr in state.prices) {
+		if(!(tkr in yearminmax)) continue;
+		for(let d in state.prices[tkr]) {
+			if(d <= yearcutoff) continue;
+			let p = state.prices[tkr][d];
+
+			if(p < yearminmax[tkr][0]) yearminmax[tkr][0] = p;
+			if(p > yearminmax[tkr][1]) yearminmax[tkr][1] = p;
+			yeardataxy[tkr].push([ d, p ]);
+		}
+	}
+	Object.keys(yeardataxy).forEach(tkr => {
+		yeardataxy[tkr] = yeardataxy[tkr].map(xy => [
+			((new Date(xy[0])).getTime() - (new Date(yearcutoff)).getTime()) / ((new Date(pf.date)).getTime() - (new Date(yearcutoff)).getTime()),
+			yearminmax[tkr][0] < yearminmax[tkr][1] ? ((xy[1] - yearminmax[tkr][0]) / (yearminmax[tkr][1] - yearminmax[tkr][0])) : .5,
+		]);
+		yeardataxy[tkr].sort((u, v) => u[0] - v[0]);
+	});
 
 	tbody.empty();
 	$("dpv#pf .stale").removeClass('stale');
@@ -134,19 +158,6 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 		let security = state.securities[tkr];
 		let pnl = s.realized + s.unrealized;
 		let exposure = s.basis + s.unrealized;
-		let ymin = null, ymax = null, ydmin = null, yprogress; /* XXX: inefficient, do one pass over state.prices and fill all securities at once */
-
-		if(tkr in state.prices) {
-			for(let d in state.prices[tkr]) {
-				if(d <= ycutoff) continue;
-				if(ydmin === null || d < ydmin) ydmin = d;
-				if(ymin === null || state.prices[tkr][d] < ymin) ymin = state.prices[tkr][d];
-				if(ymax === null || state.prices[tkr][d] > ymax) ymax = state.prices[tkr][d];
-			}
-		}
-		if(Math.abs((new Date(ycutoff).getTime()) - (new Date(ydmin).getTime())) > 86400 * 5000) {
-			ymin = ymax = null;
-		}
 
 		if(pnl >= 0) {
 			profits.push(pnl);
@@ -184,7 +195,7 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 			$(document.createElement('td')).append(dst_format_fixed_amount(s.quantity, 4)),
 			$(document.createElement('td')).append(dst_format_currency_amount(security.currency, s.basis / s.quantity)),
 			$(document.createElement('td')).append(dst_format_currency_amount(security.currency, s.ltp)),
-			yprogress = $(document.createElement('td')),
+			yearelement = $(document.createElement('td')),
 			$(document.createElement('td')).append(dst_format_percentage_gain(s.ltp / (s.basis / s.quantity))),
 			$(document.createElement('td')).append((tkr in pfy.total.securities && pfy.total.securities[tkr].quantity > 1e-6) ? dst_format_percentage_gain(s.ltp / pfy.total.securities[tkr].ltp) : ''), /* XXX: will break at splits */
 			$(document.createElement('td')).append(dst_format_currency_gain(security.currency, pnl)),
@@ -192,14 +203,14 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 			$(document.createElement('td')).append((100.0 * exposure / (pf.total.basis + pf.total.unrealized)).toFixed(2) + '%')
 		));
 
-		if(ymin < ymax && ymin <= s.ltp && s.ltp <= ymax) {
-			yprogress.addClass('pf-52w').append($(document.createElement('div')).css('width', '6em').append(
-				$(document.createElement('div')).css({
-					width: '.6em',
-					left: (5.4 * (s.ltp - ymin) / (ymax - ymin)).toFixed(2) + 'em',
-				})
-			)).prop('title', "Min: " + ymin.toFixed(2) + "\nCur: " + s.ltp.toFixed(2) + "\nMax: " + ymax.toFixed(2));
-		}
+		yearelement.addClass('small-line-chart').append(
+			$(document.createElementNS('http://www.w3.org/2000/svg', 'svg'))
+				.attr('width', '6em').attr('height', '1.5em').attr('viewBox', '0 0 6 1.5')
+				.append(
+					$(document.createElementNS('http://www.w3.org/2000/svg', 'path'))
+						.attr('d', 'M ' + yeardataxy[tkr].map(xy => (6 * xy[0]) + ',' + (1.5 * (1 - xy[1]))).join(' L '))
+				)
+		);
 
 		tr.children('td').slice(2).addClass('text-right');
 
