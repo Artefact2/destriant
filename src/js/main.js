@@ -1,4 +1,4 @@
-/* Copyright 2019 Romain "Artefact2" Dal Maso <romain.dalmaso@artefact2.com>
+/* Copyright 2019, 2020 Romain "Artefact2" Dal Maso <romain.dalmaso@artefact2.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,6 +117,38 @@ const dst_set_btn_spinner_progress = (btn, rel) => {
 	btn.data('current-progress', cp = cp + rel);
 	let pc = Math.min(100, Math.max(0, 100 * cp / btn.data('total-progress'))).toString() + '%';
 	btn.css('background', 'linear-gradient(90deg, #00bc8c 0% ' + pc + ', #444 ' + pc + ' 100%)');
+};
+
+const dst_choose_km_unit = values => {
+	let div = 1;
+
+	for(let v of values) {
+		if(typeof v !== 'number') continue;
+
+		if(Math.abs(v) >= 10000000) {
+			div = 1000000;
+			break;
+		}
+
+		if(Math.abs(v) >= 10000) {
+			div = 1000;
+		}
+	}
+
+	for(let i in values) {
+		if(typeof values[i] !== 'number') continue;
+
+		values[i] /= div;
+	}
+
+	switch(div) {
+	case 1:
+		return '';
+	case 1000:
+		return 'thousands';
+	case 1000000:
+		return 'millions';
+	}
 };
 
 dst_on_load((() => $("p#js-warning").remove()));

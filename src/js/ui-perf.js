@@ -130,13 +130,16 @@ const dst_regen_perf = state => {
 	}
 
 	if(dst_chart_perf_account_value === null) dst_generate_perf_charts();
+	$("span#perf-account-value-unit").text(dst_choose_km_unit(values[1]));
 	dst_chart_perf_account_value.load({
 		unload: true,
 		columns: values,
 	});
+	const cprofitslosses = cprofits.concat(closses);
+	$("span#perf-cumulative-pnl-unit").text(dst_choose_km_unit(cprofitslosses));
 	dst_chart_perf_cumulative_pnl.load({
 		unload: true,
-		columns: [ cx, cprofits, closses ],
+		columns: [ cx, cprofitslosses.slice(0, cprofits.length), cprofitslosses.slice(-closses.length) ],
 	});
 
 	let profits = [ 'profits' ];
@@ -161,9 +164,12 @@ const dst_regen_perf = state => {
 		categories.push(state.securities[t].name.substring(0, 50));
 		gainers.push([ state.securities[t].name, pnl, epf.total.securities[t].stale || ((t in spf.total.securities) && spf.total.securities[t].stale) ]);
 	}
+
+	const profitslosses = profits.concat(losses);
+	$("span#perf-instrument-pnl-unit").text(dst_choose_km_unit(profitslosses));
 	dst_chart_perf_instrument_pnl.load({
 		unload: true,
-		columns: [ profits, losses ],
+		columns: [ profitslosses.slice(0, profits.length), profitslosses.slice(-losses.length) ],
 		categories: categories,
 	});
 	dst_chart_perf_instrument_pnl.resize({ height: Math.min(500, (categories.length + 1) * 30) });

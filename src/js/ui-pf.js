@@ -267,10 +267,14 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 	if(dst_chart_pf_pnl === null) dst_generate_pf_charts();
 
 	if(names.length > 0) {
+		$("span#pf-exposure-unit").text(dst_choose_km_unit(exp));
+		const profitslosses = profits.concat(losses);
+		$("span#pf-pnl-unit").text(dst_choose_km_unit(profitslosses));
+
 		$("div#pf-securities").show();
 		dst_chart_pf_pnl.load({
 			unload: true,
-			columns: [ profits, losses ],
+			columns: [ profitslosses.slice(0, profits.length), profitslosses.slice(-losses.length) ],
 			categories: names,
 		});
 		dst_chart_pf_exposure.load({
