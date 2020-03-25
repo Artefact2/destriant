@@ -348,7 +348,10 @@ const dst_generate_pf_charts = () => {
 				type: 'category',
 				categories: [],
 				tick: { multiline: false },
-			}
+			},
+			y: {
+				tick: { format: x => dst_format_fixed_amount(x, 0).text() },
+			},
 		},
 		legend: { show: false },
 		grid: {
@@ -376,7 +379,10 @@ const dst_generate_pf_charts = () => {
 				type: 'category',
 				categories: [],
 				tick: { multiline: false },
-			}
+			},
+			y: {
+				tick: { format: x => dst_format_fixed_amount(x, 0).text() },
+			},
 		},
 		legend: { show: false },
 		grid: {

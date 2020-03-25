@@ -1,4 +1,4 @@
-/* Copyright 2019 Romain "Artefact2" Dal Maso <romain.dalmaso@artefact2.com>
+/* Copyright 2019, 2020 Romain "Artefact2" Dal Maso <romain.dalmaso@artefact2.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -330,6 +330,9 @@ const dst_generate_perf_charts = () => {
 				type: 'timeseries',
 				tick: { format: '%Y-%m-%d' },
 			},
+			y: {
+				tick: { format: x => dst_format_fixed_amount(x, 0).text() },
+			},
 		},
 		legend: { show: false },
 		grid: {
@@ -362,7 +365,10 @@ const dst_generate_perf_charts = () => {
 			x: {
 				type: 'category',
 				tick: { multiline: false },
-			}
+			},
+			y: {
+				tick: { format: x => dst_format_fixed_amount(x, 0).text(), rotate: -60 },
+			},
 		},
 		legend: { show: false },
 		grid: {
@@ -388,7 +394,10 @@ const dst_generate_perf_charts = () => {
 		axis: {
 			x: {
 				type: 'timeseries',
-				tick: { format: '%Y-%m-%d' },
+				tick: { format: '%Y-%m-%d', rotate: -60 },
+			},
+			y: {
+				tick: { format: x => dst_format_fixed_amount(x, 0).text() },
 			},
 		},
 		legend: { show: false },
