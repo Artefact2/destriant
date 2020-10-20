@@ -67,29 +67,28 @@ const dst_fetch_euronext_quotes = security => Promise.all([
 
 const dst_fetch_xetra_quotes = security => {
 	const d = new Date();
-	const end = d.toISOString().split('T')[0];
+	const end = Math.floor(d.getTime() / 1000);
 	d.setFullYear(d.getFullYear() - 1);
-	const start = d.toISOString().split('T')[0];
+	const start = Math.floor(d.getTime() / 1000);
 
 	return Promise.all([
-		fetch('https://api.boerse-frankfurt.de/data/price_history?limit=100&offset=0&isin='
-			  + security.isin + '&mic=XETR&minDate=' + start + '&maxDate=' + end).then(r => r.json()),
 		new Promise((resolve, reject) => {
-			const es = new EventSource('https://api.boerse-frankfurt.de/data/price_information?isin=' + security.isin + '&mic=XETR');
+			const es = new EventSource('https://api.boerse-frankfurt.de/v1/data/price_information?isin=' + security.isin + '&mic=XETR');
 			/* XXX: use Promise.finally? but es is out of scope */
+			es.onmessage = event => { es.close(); resolve(event); };
+			es.onerror = err => { es.close(); reject(err); };
+		}).then(m => JSON.parse(m.data)),
+		new Promise((resolve, reject) => {
+			const es = new EventSource('https://api.boerse-frankfurt.de/v1/tradingview/lightweight/history?resolution=D&isKeepResolutionForLatestWeeksIfPossible=false&from=' + start + '&to=' + end + '&isBidAskPrice=false&symbols=XETR%3A' + security.isin);
 			es.onmessage = event => { es.close(); resolve(event); };
 			es.onerror = err => { es.close(); reject(err); };
 		}).then(m => JSON.parse(m.data)),
 	]).then(data => {
 		let quotes = {};
-		for(let q of data[0].data) {
-			quotes[q.date] = q.close;
+		for(let q of data[1].quotes.timeValuePairs) {
+			quotes[(new Date(q.time * 1000)).toISOString().split('T')[0]] = q.value;
 		}
-
-		const tdate = data[1].timestampLastPrice.split('T')[0];
-		if(!(tdate in quotes)) {
-			quotes[data[1].timestampLastPrice.split('T')[0]] = data[1].lastPrice;
-		}
+		quotes[data[0].timestampLastPrice.split('T')[0]] = data[0].lastPrice;
 		return quotes;
-	}).catch(e => console.error(security, e));
+	});
 };
