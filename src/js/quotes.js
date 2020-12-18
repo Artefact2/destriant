@@ -73,10 +73,11 @@ const dst_fetch_xetra_quotes = security => {
 
 	return Promise.all([
 		new Promise((resolve, reject) => {
-			const es = new EventSource('https://api.boerse-frankfurt.de/v1/data/price_information?isin=' + security.isin + '&mic=XETR');
-			const t = setTimeout(2000, () => { es.close(); resolve({ data: '{}' }); }); /* XXX */
-			es.onmessage = event => { clearTimeout(t); es.close(); resolve(event); };
-			es.onerror = err => { clearTimeout(t); es.close(); reject(err); };
+			/* XXX */
+			/*const es = new EventSource('https://api.boerse-frankfurt.de/v1/data/price_information?isin=' + security.isin + '&mic=XETR');
+			es.onmessage = event => { es.close(); resolve(event); };
+			es.onerror = err => { es.close(); reject(err); };*/
+			resolve({ data: '{}' });
 		}).then(m => JSON.parse(m.data)),
 		new Promise((resolve, reject) => {
 			const es = new EventSource('https://api.boerse-frankfurt.de/v1/tradingview/lightweight/history?resolution=D&isKeepResolutionForLatestWeeksIfPossible=false&from=' + start + '&to=' + end + '&isBidAskPrice=false&symbols=XETR%3A' + security.isin);
