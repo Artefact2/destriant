@@ -74,9 +74,9 @@ const dst_fetch_xetra_quotes = security => {
 	return Promise.all([
 		new Promise((resolve, reject) => {
 			const es = new EventSource('https://api.boerse-frankfurt.de/v1/data/price_information?isin=' + security.isin + '&mic=XETR');
-			/* XXX: use Promise.finally? but es is out of scope */
-			es.onmessage = event => { es.close(); resolve(event); };
-			es.onerror = err => { es.close(); reject(err); };
+			const t = setTimeout(2000, () => { es.close(); resolve({ data: '{}' }); }); /* XXX */
+			es.onmessage = event => { clearTimeout(t); es.close(); resolve(event); };
+			es.onerror = err => { clearTimeout(t); es.close(); reject(err); };
 		}).then(m => JSON.parse(m.data)),
 		new Promise((resolve, reject) => {
 			const es = new EventSource('https://api.boerse-frankfurt.de/v1/tradingview/lightweight/history?resolution=D&isKeepResolutionForLatestWeeksIfPossible=false&from=' + start + '&to=' + end + '&isBidAskPrice=false&symbols=XETR%3A' + security.isin);
@@ -88,7 +88,9 @@ const dst_fetch_xetra_quotes = security => {
 		for(let q of data[1].quotes.timeValuePairs) {
 			quotes[(new Date(q.time * 1000)).toISOString().split('T')[0]] = q.value;
 		}
-		quotes[data[0].timestampLastPrice.split('T')[0]] = data[0].lastPrice;
+		if("timestampLastPrice" in data[0]) {
+			quotes[data[0].timestampLastPrice.split('T')[0]] = data[0].lastPrice;
+		}
 		return quotes;
 	});
 };
