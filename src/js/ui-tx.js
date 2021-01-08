@@ -25,6 +25,18 @@ const dst_reset_tx_modal = function(modal) {
 	modal.data('id', -1);
 };
 
+const dst_smart_autofill_tx_modal = function(modal, transactions) {
+	/* Auto-fill some fields based on last visible tx */
+	const id = $("div#tx-editor tbody tr:first-child").data('id');
+	if(!(id in transactions)) return;
+	const tx = transactions[id];
+	modal.find("select#tx-editor-account").val(tx.account).change();
+	modal.find("select#tx-editor-type").val(tx.type).change();
+	if(tx.type === "security") {
+		modal.find("select#tx-editor-security").val(tx.ticker).change();
+	}
+};
+
 const dst_fetch_and_reload_tx_list = function() {
 	let tbody = $("div#tx-editor tbody");
 	tbody.empty();
@@ -118,11 +130,12 @@ const dst_make_tx_tr = function(tx, account, security) {
 };
 
 dst_on_load(function() {
-	$("button#tx-editor-new-tx").click(function() {
+	$("button#tx-editor-new-tx").click(() => dst_get_state('transactions').then(txs => {
 		let modal = $("div#tx-editor-modal");
 		dst_reset_tx_modal(modal);
+		dst_smart_autofill_tx_modal(modal, txs);
 		modal.modal('show');
-	});
+	}));
 	$("button#tx-editor-modal-cancel").click(function() {
 		$("div#tx-editor-modal").modal('hide');
 	});
