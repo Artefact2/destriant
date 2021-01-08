@@ -355,7 +355,7 @@ dst_on_load(function() {
 	});
 
 	$("input#tx-editor-filter-before").val(new Date().toISOString().split('T')[0]);
-	$("input#tx-editor-filter-after").val(new Date(Date.now() - 86400000 * 100).toISOString().split('T')[0]);
+	$("input#tx-editor-filter-after").val(new Date(Date.now() - 750 * 86400000).toISOString().split('T')[0]);
 	$("form#tx-editor-filter").submit(e => {
 		e.preventDefault();
 		dst_mark_stale($("div#tx-editor"));
