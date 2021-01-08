@@ -11,7 +11,7 @@ public/index.xhtml: public/index.html
 
 public/destriant.js: src/js/main.js $(shell find src/js -name "*.js" -not -name "main.js" -not -name "last.js") src/js/last.js
 	echo "/*! Destriant (https://gitlab.com/artefact2/destriant) */" > $@
-	echo "/*! Copyright 2019 Destriant contributors (https://gitlab.com/artefact2/destriant/-/graphs/master) */" >> $@
+	echo "/*! Copyright 2019-2021 Destriant contributors (https://gitlab.com/artefact2/destriant/-/graphs/master) */" >> $@
 	echo "/*! Licensed under the Apache License, version 2.0 (http://www.apache.org/licenses/LICENSE-2.0) */" >> $@
 	echo "\"use strict\";" >> $@
 	tail -q -n+18 $^ >> $@
