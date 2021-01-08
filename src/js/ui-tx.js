@@ -29,7 +29,7 @@ const dst_smart_autofill_tx_modal = function(modal, transactions) {
 	/* Auto-fill some fields based on last visible tx */
 	const id = $("div#tx-editor tbody tr:first-child").data('id');
 	if(!(id in transactions)) return;
-	const tx = transactions[id];
+	const tx = transactions.find(e => e.id === id);
 	modal.find("select#tx-editor-account").val(tx.account).change();
 	modal.find("select#tx-editor-type").val(tx.type).change();
 	if(tx.type === "security") {
