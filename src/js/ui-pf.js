@@ -189,7 +189,11 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 
 		let aid = Object.keys(pf.accounts).find(aid => tkr in pf.accounts[aid].securities && Math.abs(pf.accounts[aid].securities[tkr].quantity) > 1e-6);
 		tbody.append(tr = $(document.createElement('tr')).data('account', aid).data('ticker', tkr).append(
-			$(document.createElement('td')).append($(document.createElement('button')).addClass('btn btn-xs btn-primary input-transaction').text('T').prop('title', 'Input transaction for this security')),
+			$(document.createElement('td')).append(
+				$(document.createElement('button')).addClass('btn btn-xs input-transaction').text('T').prop('title', 'Input transaction for this security'),
+				' ',
+				$(document.createElement('button')).addClass('btn btn-xs btn-primary view-transactions').text('L').prop('title', 'View transaction list')
+			),
 			$(document.createElement('th')).text(tkr),
 			$(document.createElement('td')).text(security.name.substring(0, 50)),
 			$(document.createElement('td')).append(dst_format_fixed_amount(s.quantity, 4)),

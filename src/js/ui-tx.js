@@ -365,6 +365,13 @@ dst_on_load(function() {
 		if(account === -1) account = tr.data('account');
 		modal.find('select#tx-editor-account').val(account).change();
 		modal.modal('show');
+	}).on('click', 'button.view-transactions', function() {
+		let tr = $(this).closest('tr');
+		let account = parseInt($("select#main-account-selector").val(), 10);
+		$("select#tx-editor-filter-account").val(account === -1 ? "__all__" : account);
+		$("select#tx-editor-filter-security").val(tr.data('ticker'));
+		$("form#tx-editor-filter").submit();
+		$("div#navbarMainContent a[data-target='tx-editor']").click();
 	});
 
 	$("input#tx-editor-filter-before").val(new Date().toISOString().split('T')[0]);

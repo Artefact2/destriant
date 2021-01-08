@@ -101,3 +101,8 @@ td.small-line-chart > svg > path {
 	stroke: white;
 	stroke-width: 0.05;
 }
+
+div#pf button.input-transaction {
+	border: 0;
+	background: linear-gradient(-45deg, hsl(20, 100%, 60%) 0% 50%, hsl(140, 100%, 60%) 50% 100%);
+}
