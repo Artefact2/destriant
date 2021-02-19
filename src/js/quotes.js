@@ -1,4 +1,4 @@
-/* Copyright 2019, 2020 Romain "Artefact2" Dal Maso <romain.dalmaso@artefact2.com>
+/* Copyright 2019, 2020, 2021 Romain "Artefact2" Dal Maso <romain.dalmaso@artefact2.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,33 +65,20 @@ const dst_fetch_euronext_quotes = security => Promise.all([
 	return quotes;
 }).catch(e => console.error(security, e));
 
-const dst_fetch_xetra_quotes = security => {
+const dst_fetch_xetra_quotes = security => new Promise((resolve, reject) => {
 	const d = new Date();
 	const end = Math.floor(d.getTime() / 1000);
 	d.setFullYear(d.getFullYear() - 1);
 	const start = Math.floor(d.getTime() / 1000);
 
-	return Promise.all([
-		new Promise((resolve, reject) => {
-			/* XXX */
-			/*const es = new EventSource('https://api.boerse-frankfurt.de/v1/data/price_information?isin=' + security.isin + '&mic=XETR');
-			es.onmessage = event => { es.close(); resolve(event); };
-			es.onerror = err => { es.close(); reject(err); };*/
-			resolve({ data: '{}' });
-		}).then(m => JSON.parse(m.data)),
-		new Promise((resolve, reject) => {
-			const es = new EventSource('https://api.boerse-frankfurt.de/v1/tradingview/lightweight/history?resolution=D&isKeepResolutionForLatestWeeksIfPossible=false&from=' + start + '&to=' + end + '&isBidAskPrice=false&symbols=XETR%3A' + security.isin);
-			es.onmessage = event => { es.close(); resolve(event); };
-			es.onerror = err => { es.close(); reject(err); };
-		}).then(m => JSON.parse(m.data)),
-	]).then(data => {
-		let quotes = {};
-		for(let q of data[1].quotes.timeValuePairs) {
-			quotes[(new Date(q.time * 1000)).toISOString().split('T')[0]] = q.value;
-		}
-		if("timestampLastPrice" in data[0]) {
-			quotes[data[0].timestampLastPrice.split('T')[0]] = data[0].lastPrice;
-		}
-		return quotes;
-	});
-};
+	const es = new EventSource('https://api.boerse-frankfurt.de/v1/tradingview/lightweight/history?resolution=D&isKeepResolutionForLatestWeeksIfPossible=false&from=' + start + '&to=' + end + '&isBidAskPrice=false&symbols=XETR%3A' + security.isin);
+	es.onmessage = event => { es.close(); resolve(event); };
+	es.onerror = err => { es.close(); reject(err); };
+}).then(m => JSON.parse(m.data)).then(data => {
+	let quotes = {};
+	for(let q of data.quotes.timeValuePairs) {
+		/* XXX: timestamps are one day too short? graph history in https://www.boerse-frankfurt.de consistently wrong against other sources like tradingview */
+		quotes[(new Date((q.time + 7200) * 1000)).toISOString().split('T')[0]] = q.value;
+	}
+	return quotes;
+});
