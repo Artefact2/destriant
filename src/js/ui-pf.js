@@ -1,4 +1,4 @@
-/* Copyright 2019, 2020 Romain "Artefact2" Dal Maso <romain.dalmaso@artefact2.com>
+/* Copyright 2019, 2020, 2021 Romain "Artefact2" Dal Maso <romain.dalmaso@artefact2.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -229,6 +229,11 @@ const dst_regen_pf_table = (state, pf, pfy) => {
 	let daypnlp = 1 + daypnl / (pfy.total.basis + pfy.total.unrealized);
 	$("h4#pf-day-change").empty().append(dst_format_currency_gain('EUR', daypnl)); /* XXX */
 	$("h4#pf-day-change-percentage").empty().append(dst_format_percentage_gain(daypnlp));
+	if(daypnlp >= 1.0) {
+		$("title").text($("h4#pf-day-change-percentage").text() + ' · Destriant');
+	} else {
+		$("title").text('(' + $("h4#pf-day-change-percentage").text() + ') · Destriant');
+	}
 
 	$("h4#pf-positions-value").empty().append(dst_format_currency_amount('EUR', pf.total.basis + pf.total.unrealized - pf.total.cash.basis)); /* XXX */
 	$(".pf-total-pnl").empty().append(dst_format_currency_gain('EUR', pf.total.realized + pf.total.closed + pf.total.unrealized)); /* XXX */
